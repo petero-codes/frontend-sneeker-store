@@ -79,12 +79,12 @@ const VisualSearchModal = ({ isOpen, onClose, onSearch }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-seekon-midnight/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-seekon-midnight/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.8 }}
-        className="bg-seekon-midnight/95 backdrop-blur-xl rounded-2xl p-6 max-w-lg w-full border border-white/20 shadow-2xl"
+        className="bg-seekon-midnight/95 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-sm sm:max-w-lg w-full border border-white/20 shadow-2xl"
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">

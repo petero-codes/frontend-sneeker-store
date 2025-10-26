@@ -63,7 +63,7 @@ const HeroBanner = () => {
   };
 
   return (
-    <div className="relative h-[500px] md:h-[600px] lg:h-[700px] overflow-hidden">
+    <div className="relative h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] overflow-hidden">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentSlide}
@@ -86,21 +86,21 @@ const HeroBanner = () => {
 
           {/* Content */}
           <div className="relative z-10 h-full flex items-center">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-              <div className="max-w-2xl">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 w-full">
+              <div className="max-w-xl sm:max-w-2xl">
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2, duration: 0.6 }}
                   className="text-white"
                 >
-                  <h2 className="text-sm md:text-base font-medium mb-2 opacity-90">
+                  <h2 className="text-xs sm:text-sm md:text-base font-medium mb-1 sm:mb-2 opacity-90">
                     {slides[currentSlide].subtitle}
                   </h2>
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-3 sm:mb-4 leading-tight">
                     {slides[currentSlide].title}
                   </h1>
-                  <p className="text-lg md:text-xl mb-8 opacity-90 max-w-lg">
+                  <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-6 sm:mb-8 opacity-90 max-w-lg">
                     {slides[currentSlide].description}
                   </p>
                   <motion.div
@@ -109,9 +109,9 @@ const HeroBanner = () => {
                   >
                     <Link
                       to={slides[currentSlide].buttonLink}
-                      className="inline-flex items-center space-x-2 bg-white text-gray-900 font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors duration-200 shadow-lg"
+                      className="inline-flex items-center space-x-2 bg-white text-gray-900 font-semibold px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 rounded-lg hover:bg-gray-100 transition-colors duration-200 shadow-lg text-sm sm:text-base"
                     >
-                      <FiShoppingBag className="w-5 h-5" />
+                      <FiShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
                       <span>{slides[currentSlide].buttonText}</span>
                     </Link>
                   </motion.div>

@@ -1,17 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import Logo3D from "./Logo3D";
 
 const Layout = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 relative overflow-hidden">
-      {/* Full-page background Seekon Logo */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-40 dark:opacity-50 pointer-events-none z-0">
-        <img 
-          src="/seekon bg.png" 
-          alt="Seekon Background Logo" 
-          className="w-[90vw] h-[90vh] max-w-[1400px] max-h-[900px] object-contain"
-        />
+      {/* Full-page background 3D Logo */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-20 dark:opacity-30 pointer-events-none z-0">
+        <div className="w-full h-full max-w-4xl max-h-96">
+          <Logo3D width="100%" height="100%" />
+        </div>
       </div>
 
       {/* Content Wrapper to ensure it's above the background */}
@@ -21,12 +20,17 @@ const Layout = ({ children }) => {
         <Link to="/" className="flex items-center space-x-3 group">
           <img 
             src="/seekon bg.png" 
-            alt="Seekon Logo" 
+            alt="Seekon Apparel Logo" 
             className="h-10 w-auto opacity-100 group-hover:opacity-100 transition-opacity duration-200"
           />
-          <span className="font-bold text-xl text-gray-800 dark:text-gray-100 group-hover:text-seekon-electricRed transition-colors duration-200">
-            Seekon
-          </span>
+          <div className="flex items-center space-x-2">
+            <span className="font-bold text-xl text-gray-800 dark:text-gray-100 group-hover:text-seekon-electricRed transition-colors duration-200">
+              Seekon
+            </span>
+            <span className="font-bold text-xl text-gray-800 dark:text-gray-100 group-hover:text-seekon-electricRed transition-colors duration-200">
+              Apparel
+            </span>
+          </div>
         </Link>
 
         {/* Navigation */}
@@ -69,7 +73,7 @@ const Layout = ({ children }) => {
             className="h-8 w-auto opacity-80"
           />
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            © 2025 Seekon. All rights reserved.
+            © 2025 Seekon Apparel. All rights reserved.
           </p>
         </motion.div>
       </footer>

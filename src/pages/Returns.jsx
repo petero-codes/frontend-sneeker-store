@@ -53,7 +53,7 @@ const Returns = () => {
                   <FiShield className="w-6 h-6 text-seekon-pureWhite" />
                 </div>
                 <h3 className="font-semibold text-seekon-midnight mb-2">Free Returns</h3>
-                <p className="text-seekon-charcoalGray text-sm">Free return shipping on all orders over $75.</p>
+                <p className="text-seekon-charcoalGray text-sm">Free return shipping on all orders over KSh 7,500.</p>
               </div>
 
               <div className="bg-seekon-pureWhite p-6 rounded-lg shadow-lg">

@@ -10,28 +10,28 @@ const PromotionalBanner = ({
   className = "",
   scrollSpeed = "slow" // slow, medium, fast
 }) => {
-  // Speed configurations
+  // Speed configurations - slower for better UX
   const speedConfig = {
-    slow: { duration: 30, delay: 15 },
-    medium: { duration: 20, delay: 10 },
-    fast: { duration: 15, delay: 7.5 }
+    slow: { duration: 50, delay: 25 },
+    medium: { duration: 35, delay: 17.5 },
+    fast: { duration: 25, delay: 12.5 }
   };
 
-  const config = speedConfig[scrollSpeed] || speedConfig.medium;
+  const config = speedConfig[scrollSpeed] || speedConfig.slow;
 
   return (
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`${backgroundColor} ${textColor} py-2 relative overflow-hidden ${className}`}
+      className={`${backgroundColor} ${textColor} py-1 sm:py-1.5 relative overflow-hidden ${className}`}
     >
       {/* Scrolling text container */}
-      <div className="relative h-6">
-        {/* First scrolling text */}
+      <div className="relative h-4 sm:h-5">
+        {/* Single scrolling text */}
         <motion.div
           animate={{
-            x: ['100vw', '-100vw']
+            x: ['100%', '-100%']
           }}
           transition={{
             x: {
@@ -41,69 +41,28 @@ const PromotionalBanner = ({
               ease: "linear"
             }
           }}
-          className="absolute top-0 left-0 flex items-center space-x-3 whitespace-nowrap"
+          className="absolute top-0 left-0 flex items-center space-x-2 sm:space-x-3 whitespace-nowrap"
         >
           {showIcons && (
             <>
               {/* Price Tag Icon */}
-              <div className="relative flex-shrink-0">
-                <div className="w-4 h-4 border border-current transform rotate-45"></div>
-                <div className="absolute top-0 left-0 w-1 h-1 bg-current rounded-full"></div>
+              <div className="relative flex-shrink-0 hidden sm:block">
+                <div className="w-3 h-3 sm:w-4 sm:h-4 border border-current transform rotate-45"></div>
+                <div className="absolute top-0 left-0 w-0.5 h-0.5 sm:w-1 sm:h-1 bg-current rounded-full"></div>
               </div>
             </>
           )}
           
-          <span className="text-xs font-medium uppercase tracking-wide flex-shrink-0">
+          <span className="text-[9px] sm:text-[10px] font-medium uppercase tracking-wide flex-shrink-0">
             {message}
           </span>
           
           {showIcons && (
             <>
               {/* Price Tag Icon */}
-              <div className="relative flex-shrink-0">
-                <div className="w-4 h-4 border border-current transform rotate-45"></div>
-                <div className="absolute top-0 left-0 w-1 h-1 bg-current rounded-full"></div>
-              </div>
-            </>
-          )}
-        </motion.div>
-
-        {/* Second scrolling text for seamless loop */}
-        <motion.div
-          animate={{
-            x: ['100vw', '-100vw']
-          }}
-          transition={{
-            x: {
-              repeat: Infinity,
-              repeatType: "loop",
-              duration: config.duration,
-              ease: "linear",
-              delay: config.delay
-            }
-          }}
-          className="absolute top-0 left-0 flex items-center space-x-3 whitespace-nowrap"
-        >
-          {showIcons && (
-            <>
-              {/* Price Tag Icon */}
-              <div className="relative flex-shrink-0">
-                <div className="w-4 h-4 border border-current transform rotate-45"></div>
-                <div className="absolute top-0 left-0 w-1 h-1 bg-current rounded-full"></div>
-              </div>
-            </>
-          )}
-          
-          <span className="text-xs font-medium uppercase tracking-wide flex-shrink-0">
-            {message}
-          </span>
-          
-          {showIcons && (
-            <>
-              {/* Price Tag Icon */}
-              <div className="relative flex-shrink-0">
-                <div className="w-4 h-4 border border-current transform rotate-45"></div>
-                <div className="absolute top-0 left-0 w-1 h-1 bg-current rounded-full"></div>
+              <div className="relative flex-shrink-0 hidden sm:block">
+                <div className="w-3 h-3 sm:w-4 sm:h-4 border border-current transform rotate-45"></div>
+                <div className="absolute top-0 left-0 w-0.5 h-0.5 sm:w-1 sm:h-1 bg-current rounded-full"></div>
               </div>
             </>
           )}

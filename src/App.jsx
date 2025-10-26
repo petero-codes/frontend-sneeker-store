@@ -18,6 +18,7 @@ import Contact from './pages/Contact';
 import Shipping from './pages/Shipping';
 import Returns from './pages/Returns';
 import CorporatePage from './pages/CorporatePage';
+import Logo3DPage from './pages/Logo3DPage';
 
 // Components
 import Layout from './components/Layout';
@@ -107,6 +108,10 @@ const App = () => {
                 <AppLayout>
                   <Collection />
                 </AppLayout>
+              } />
+
+              <Route path="/logo-3d" element={
+                <Logo3DPage />
               } />
 
               <Route path="/product/:id" element={

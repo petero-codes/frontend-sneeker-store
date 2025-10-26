@@ -115,7 +115,7 @@ export const api = {
     if (lowerMessage.includes('under') || lowerMessage.includes('cheap') || lowerMessage.includes('budget') || lowerMessage.includes('affordable') || lowerMessage.includes('price') || lowerMessage.includes('cost')) {
       return {
         message: "Oh honey, I've got the BEST deals for you! 💸 Let me show you how to score incredible style without breaking the bank:\n\n💰 **Smart Shopping**: I'll find those hidden gems that look expensive but aren't!\n🏷️ **Flash Sales**: Exclusive drops with insane discounts (like, seriously good)\n💎 **Bundle Magic**: Mix & match deals that'll make your wallet happy\n🎫 **Secret Codes**: Extra savings that most people miss\n⭐ **Style Steals**: High-quality pieces at unbelievable prices\n📊 **Price Drops**: I'll alert you when your wishlist items go on sale\n\nTell me your budget and I'll curate a collection that'll make you look like a million bucks! What's your style budget?",
-        suggestions: ['Under $50', 'Under $100', 'Show me deals', 'Best value items', 'Bundle deals', 'Price alerts']
+        suggestions: ['Under KSh 5,000', 'Under KSh 10,000', 'Show me deals', 'Best value items', 'Bundle deals', 'Price alerts']
       };
     }
     
@@ -231,7 +231,7 @@ export const api = {
     if (lowerMessage.includes('under') || lowerMessage.includes('cheap') || lowerMessage.includes('budget') || lowerMessage.includes('affordable')) {
       return {
         message: "I'll help you find amazing deals within your budget! Here's what I can do:\n\n💰 **Price Filters**: Set maximum price limits\n🏷️ **Sale Items**: Current discounts and clearance deals\n💎 **Bundle Deals**: Multi-item discounts and packages\n🎫 **Coupon Codes**: Additional savings opportunities\n⭐ **Best Value**: Highest rated products in your price range\n📊 **Price Alerts**: Notify when items drop in price\n\nWhat's your budget range?",
-        suggestions: ['Under $50', 'Under $100', 'Show me deals', 'Best value items', 'Bundle deals', 'Price alerts']
+        suggestions: ['Under KSh 5,000', 'Under KSh 10,000', 'Show me deals', 'Best value items', 'Bundle deals', 'Price alerts']
       };
     }
     

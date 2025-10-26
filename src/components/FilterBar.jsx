@@ -34,12 +34,12 @@ const FilterBar = () => {
 
   const priceRanges = [
     'All Prices',
-    'Under $50',
-    '$50 - $100',
-    '$100 - $150',
-    '$150 - $200',
-    '$200 - $300',
-    'Over $300'
+    'Under KSh 5,000',
+    'KSh 5,000 - KSh 10,000',
+    'KSh 10,000 - KSh 15,000',
+    'KSh 15,000 - KSh 20,000',
+    'KSh 20,000 - KSh 30,000',
+    'Over KSh 30,000'
   ];
 
   const sortOptions = [
@@ -113,7 +113,7 @@ const FilterBar = () => {
               </label>
               <button
                 onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-                className="flex items-center justify-between w-32 px-3 py-2 bg-seekon-pureWhite border border-seekon-smokeWhite rounded-lg text-seekon-midnight text-sm hover:border-seekon-electricRed/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-seekon-electricRed/20"
+                className="flex items-center justify-between w-28 sm:w-32 px-3 py-2 bg-seekon-pureWhite border border-seekon-smokeWhite rounded-lg text-seekon-midnight text-xs sm:text-sm hover:border-seekon-electricRed/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-seekon-electricRed/20"
               >
                 <span className="truncate">{selectedCategory}</span>
                 <FiChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCategoryOpen ? 'rotate-180' : ''}`} />
@@ -135,7 +135,7 @@ const FilterBar = () => {
               </label>
               <button
                 onClick={() => setIsBrandOpen(!isBrandOpen)}
-                className="flex items-center justify-between w-32 px-3 py-2 bg-seekon-pureWhite border border-seekon-smokeWhite rounded-lg text-seekon-midnight text-sm hover:border-seekon-electricRed/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-seekon-electricRed/20"
+                className="flex items-center justify-between w-28 sm:w-32 px-3 py-2 bg-seekon-pureWhite border border-seekon-smokeWhite rounded-lg text-seekon-midnight text-xs sm:text-sm hover:border-seekon-electricRed/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-seekon-electricRed/20"
               >
                 <span className="truncate">{selectedBrand}</span>
                 <FiChevronDown className={`w-4 h-4 transition-transform duration-200 ${isBrandOpen ? 'rotate-180' : ''}`} />
@@ -157,7 +157,7 @@ const FilterBar = () => {
               </label>
               <button
                 onClick={() => setIsPriceOpen(!isPriceOpen)}
-                className="flex items-center justify-between w-32 px-3 py-2 bg-seekon-pureWhite border border-seekon-smokeWhite rounded-lg text-seekon-midnight text-sm hover:border-seekon-electricRed/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-seekon-electricRed/20"
+                className="flex items-center justify-between w-36 sm:w-48 px-3 py-2 bg-seekon-pureWhite border border-seekon-smokeWhite rounded-lg text-seekon-midnight text-xs sm:text-sm hover:border-seekon-electricRed/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-seekon-electricRed/20"
               >
                 <span className="truncate">{selectedPrice}</span>
                 <FiChevronDown className={`w-4 h-4 transition-transform duration-200 ${isPriceOpen ? 'rotate-180' : ''}`} />
@@ -179,7 +179,7 @@ const FilterBar = () => {
               </label>
               <button
                 onClick={() => setIsSortOpen(!isSortOpen)}
-                className="flex items-center justify-between w-32 px-3 py-2 bg-seekon-pureWhite border border-seekon-smokeWhite rounded-lg text-seekon-midnight text-sm hover:border-seekon-electricRed/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-seekon-electricRed/20"
+                className="flex items-center justify-between w-28 sm:w-32 px-3 py-2 bg-seekon-pureWhite border border-seekon-smokeWhite rounded-lg text-seekon-midnight text-xs sm:text-sm hover:border-seekon-electricRed/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-seekon-electricRed/20"
               >
                 <span className="truncate">{selectedSort}</span>
                 <FiChevronDown className={`w-4 h-4 transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} />

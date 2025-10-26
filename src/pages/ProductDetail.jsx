@@ -7,6 +7,7 @@ import { addToCart } from '../store/slices/cartSlice';
 import { fetchProducts } from '../store/slices/productSlice';
 import ProductCard from '../components/ProductCard';
 import { formatPrice, calculateDiscount, getRatingStars } from '../utils/formatPrice';
+import toast from 'react-hot-toast';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -63,7 +64,7 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
     if (!selectedSize || !selectedColor) {
-      alert('Please select size and color');
+      toast.error('Please select size and color');
       return;
     }
 
@@ -74,8 +75,7 @@ const ProductDetail = () => {
       quantity
     }));
 
-    // Show success message (you could use a toast library here)
-    alert('Added to cart!');
+    toast.success(`${product.name} added to cart!`);
   };
 
   const handleQuantityChange = (change) => {
@@ -93,19 +93,19 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Back Button */}
         <motion.button
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => navigate(-1)}
-          className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200 mb-8"
+          className="flex items-center space-x-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200 mb-4 sm:mb-6 md:mb-8"
         >
           <FiArrowLeft className="w-4 h-4" />
           <span>Back</span>
         </motion.button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12">
           {/* Product Images */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -122,7 +122,7 @@ const ProductDetail = () => {
             </div>
 
             {/* Thumbnail Images */}
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {product.images.map((image, index) => (
                 <button
                   key={index}
@@ -151,20 +151,20 @@ const ProductDetail = () => {
           >
             {/* Brand & Name */}
             <div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-2">
+              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium mb-1 sm:mb-2">
                 {product.brand}
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">
                 {product.name}
               </h1>
               
               {/* Rating */}
-              <div className="flex items-center space-x-2 mb-4">
+              <div className="flex items-center space-x-2 mb-3 sm:mb-4">
                 <div className="flex items-center">
                   {stars.map((star, index) => (
                     <FiStar
                       key={index}
-                      className={`w-5 h-5 ${
+                      className={`w-4 h-4 sm:w-5 sm:h-5 ${
                         star === 'full' 
                           ? 'text-yellow-400 fill-current' 
                           : star === 'half'
@@ -174,23 +174,23 @@ const ProductDetail = () => {
                     />
                   ))}
                 </div>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                   ({product.reviews} reviews)
                 </span>
               </div>
             </div>
 
             {/* Price */}
-            <div className="flex items-center space-x-4">
-              <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+              <span className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
                 {formatPrice(product.price)}
               </span>
               {product.originalPrice > product.price && (
                 <>
-                  <span className="text-xl text-gray-500 dark:text-gray-400 line-through">
+                  <span className="text-lg sm:text-xl text-gray-500 dark:text-gray-400 line-through">
                     {formatPrice(product.originalPrice)}
                   </span>
-                  <span className="bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 px-2 py-1 rounded-full text-sm font-medium">
+                  <span className="bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 px-2 py-1 rounded-full text-xs sm:text-sm font-medium">
                     Save {discountPercentage}%
                   </span>
                 </>
@@ -199,25 +199,25 @@ const ProductDetail = () => {
 
             {/* Description */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 Description
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
                 {product.description}
               </p>
             </div>
 
             {/* Size Selection */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 sm:mb-3">
                 Size
               </h3>
-              <div className="grid grid-cols-6 gap-2">
+              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
                 {product.sizes.map((size) => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
-                    className={`py-2 px-3 rounded-lg border transition-colors duration-200 ${
+                    className={`py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg border text-sm transition-colors duration-200 ${
                       selectedSize === size
                         ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
                         : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
@@ -231,15 +231,15 @@ const ProductDetail = () => {
 
             {/* Color Selection */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 sm:mb-3">
                 Color
               </h3>
-              <div className="flex space-x-3">
+              <div className="flex flex-wrap gap-2 sm:gap-3">
                 {product.colors.map((color) => (
                   <button
                     key={color}
                     onClick={() => setSelectedColor(color)}
-                    className={`w-12 h-12 rounded-full border-2 transition-colors duration-200 ${
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 transition-colors duration-200 ${
                       selectedColor === color
                         ? 'border-primary-600'
                         : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
@@ -259,39 +259,39 @@ const ProductDetail = () => {
 
             {/* Quantity */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 sm:mb-3">
                 Quantity
               </h3>
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => handleQuantityChange(-1)}
-                  className="w-10 h-10 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-[#00A676] bg-[#FAFAFA] text-[#1F1F1F] flex items-center justify-center hover:bg-[#00A676] hover:text-[#FAFAFA] transition-all duration-200"
                 >
-                  <FiMinus className="w-4 h-4" />
+                  <FiMinus className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
-                <span className="w-12 text-center font-medium text-gray-900 dark:text-gray-100">
+                <span className="w-12 sm:w-16 text-center font-medium text-[#1F1F1F] text-lg sm:text-xl">
                   {quantity}
                 </span>
                 <button
                   onClick={() => handleQuantityChange(1)}
-                  className="w-10 h-10 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-[#00A676] bg-[#FAFAFA] text-[#1F1F1F] flex items-center justify-center hover:bg-[#00A676] hover:text-[#FAFAFA] transition-all duration-200"
                 >
-                  <FiPlus className="w-4 h-4" />
+                  <FiPlus className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-4">
-              <div className="flex space-x-4">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleAddToCart}
                   disabled={!product.inStock}
-                  className="flex-1 btn-primary flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-[#00A676] text-[#FAFAFA] hover:bg-[#008A5E] font-semibold py-3 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-sm sm:text-base shadow-lg"
                 >
-                  <FiShoppingCart className="w-5 h-5" />
+                  <FiShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>{product.inStock ? 'Add to Cart' : 'Out of Stock'}</span>
                 </motion.button>
                 
@@ -299,21 +299,33 @@ const ProductDetail = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsWishlisted(!isWishlisted)}
-                  className={`p-3 rounded-lg border transition-colors duration-200 ${
+                  className={`p-2.5 sm:p-3 rounded-lg border transition-colors duration-200 ${
                     isWishlisted
-                      ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
-                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
+                      ? 'border-[#00A676] bg-[#00A676]/10 text-[#00A676]'
+                      : 'border-[#00A676]/30 hover:border-[#00A676] text-[#1F1F1F] hover:bg-[#00A676]/5'
                   }`}
                 >
-                  <FiHeart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
+                  <FiHeart className={`w-4 h-4 sm:w-5 sm:h-5 ${isWishlisted ? 'fill-current' : ''}`} />
                 </motion.button>
 
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400 transition-colors duration-200"
+                  onClick={() => {
+                    if (navigator.share) {
+                      navigator.share({
+                        title: product.name,
+                        text: product.description,
+                        url: window.location.href,
+                      });
+                    } else {
+                      toast.success('Link copied to clipboard!');
+                      navigator.clipboard.writeText(window.location.href);
+                    }
+                  }}
+                  className="p-2.5 sm:p-3 rounded-lg border border-[#00A676]/30 text-[#1F1F1F] hover:border-[#00A676] hover:bg-[#00A676]/5 transition-colors duration-200"
                 >
-                  <FiShare2 className="w-5 h-5" />
+                  <FiShare2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 </motion.button>
               </div>
 

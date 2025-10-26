@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,12 +13,15 @@ import {
   FiLogOut,
   FiHeart,
   FiChevronDown,
-  FiHome
+  FiHome,
+  FiCamera,
+  FiEdit3
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { toggleCart, openCart } from '../store/slices/cartSlice';
 import { toggleTheme } from '../store/slices/userSlice';
 import SearchModal from './SearchModal';
+import toast from 'react-hot-toast';
 
 const Navbar = () => {
   console.log('🧭 Navbar component rendering...');
@@ -34,6 +37,60 @@ const Navbar = () => {
 
   console.log('🧭 Navbar state:', { user, isAuthenticated, theme, totalItems });
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Close user dropdown when clicking outside
+      if (isDropdownOpen && !event.target.closest('.user-dropdown')) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isDropdownOpen]);
+
+  // Handle ESC key to close dropdowns
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        setIsDropdownOpen(false);
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, []);
+
+  const handleProfilePhotoUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select a valid image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        // Here you would typically update the user's avatar in your backend
+        console.log('Profile photo uploaded:', e.target.result);
+        toast.success('Profile photo updated successfully!');
+      };
+      reader.onerror = () => {
+        toast.error('Failed to upload image. Please try again.');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSearch = () => {
     setIsSearchOpen(true);
   };
@@ -43,9 +100,11 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
+    toast.success('Logged out successfully!');
     logout();
     navigate('/');
     setIsMenuOpen(false);
+    setIsDropdownOpen(false);
   };
 
   // Navigation items matching Kicks Kenya structure
@@ -244,17 +303,17 @@ const Navbar = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-seekon-midnight/90 via-seekon-deepNavy/80 to-seekon-midnight/90"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent"></div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex justify-between items-center h-14 sm:h-16">
 
             {/* Left Side - Home Icon */}
             <div className="flex items-center">
               <Link
                 to="/"
-                className="relative p-3 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
+                className="relative p-2 sm:p-3 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-seekon-electricRed/20 to-seekon-neonCyan/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <FiHome className="relative w-5 h-5 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
+                <FiHome className="relative w-4 h-4 sm:w-5 sm:h-5 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
               </Link>
             </div>
 
@@ -282,36 +341,36 @@ const Navbar = () => {
 
                   {/* Dropdown Menu */}
                   {item.dropdown && (
-                    <div className="absolute top-full left-0 w-[800px] bg-seekon-midnight/95 backdrop-blur-xl shadow-2xl border border-seekon-charcoalGray/30 rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 overflow-hidden">
+                    <div className="absolute top-full left-1/2 transform -translate-x-[45%] mt-2 w-[90vw] max-w-[800px] bg-seekon-midnight/95 backdrop-blur-xl shadow-2xl border border-seekon-charcoalGray/30 rounded-xl sm:rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 overflow-hidden">
                       {/* Clear glassmorphism background */}
                       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/10 to-white/5"></div>
                       <div className="absolute inset-0 bg-gradient-to-t from-seekon-midnight/20 to-transparent"></div>
                       
-                      <div className="relative p-6">
+                      <div className="relative p-4 sm:p-6">
                         {/* Header */}
-                        <div className="mb-4">
-                          <h3 className="text-lg font-bold text-seekon-pureWhite mb-2">{item.name}</h3>
-                          <div className="w-12 h-0.5 bg-gradient-to-r from-seekon-electricRed to-seekon-neonCyan rounded-full"></div>
+                        <div className="mb-3 sm:mb-4">
+                          <h3 className="text-base sm:text-lg font-bold text-seekon-pureWhite mb-2">{item.name}</h3>
+                          <div className="w-8 sm:w-12 h-0.5 bg-gradient-to-r from-seekon-electricRed to-seekon-neonCyan rounded-full"></div>
                         </div>
 
                         {/* Compact Horizontal Layout */}
-                        <div className="grid grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                           {item.dropdown.map((dropdownItem, index) => (
                             <div key={index} className="space-y-2">
                               {/* Group Header */}
-                              <div className="flex items-center mb-2">
-                                <div className="w-2 h-2 bg-gradient-to-r from-seekon-electricRed to-seekon-neonCyan rounded-full mr-2"></div>
-                                <h4 className="text-sm font-semibold text-seekon-pureWhite">{dropdownItem.name}</h4>
+                              <div className="flex items-center mb-1 sm:mb-2">
+                                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-seekon-electricRed to-seekon-neonCyan rounded-full mr-1.5 sm:mr-2 flex-shrink-0"></div>
+                                <h4 className="text-xs sm:text-sm font-semibold text-seekon-pureWhite truncate">{dropdownItem.name}</h4>
                               </div>
                               
                               {/* Group Content */}
-                              <div className="space-y-1">
+                              <div className="space-y-0.5 sm:space-y-1">
                                 {dropdownItem.subItems ? (
                                   dropdownItem.subItems.map((subItem, subIndex) => (
                                     <Link
                                       key={subIndex}
                                       to={subItem.path}
-                                      className="block px-2 py-1 text-xs text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 hover:backdrop-blur-sm rounded transition-all duration-200 group/item"
+                                      className="block px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 hover:backdrop-blur-sm rounded transition-all duration-200 group/item truncate"
                                     >
                                       <span className="flex items-center justify-between">
                                         <span>{subItem.name}</span>
@@ -364,23 +423,23 @@ const Navbar = () => {
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               {/* Search Icon */}
               <button
                 onClick={handleSearch}
-                className="relative p-3 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
+                className="relative p-2 sm:p-3 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-seekon-electricRed/20 to-seekon-neonCyan/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <FiSearch className="relative w-5 h-5 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
+                <FiSearch className="relative w-4 h-4 sm:w-5 sm:h-5 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
               </button>
 
               {/* Cart */}
               <button
                 onClick={handleCartClick}
-                className="relative p-3 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
+                className="relative p-2 sm:p-3 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-seekon-electricRed/20 to-seekon-neonCyan/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <FiShoppingCart className="relative w-5 h-5 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
+                <FiShoppingCart className="relative w-4 h-4 sm:w-5 sm:h-5 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
                 {totalItems > 0 && (
                   <span className="absolute -top-1 -right-1 bg-gradient-to-r from-seekon-electricRed to-seekon-electricRed/80 text-seekon-pureWhite text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse shadow-lg shadow-seekon-electricRed/50">
                     {totalItems}
@@ -391,16 +450,92 @@ const Navbar = () => {
               {/* User Menu */}
               <div className="relative">
                 {isAuthenticated ? (
-                  <div className="flex items-center space-x-3 px-3 py-2 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group">
-                    <div className="relative">
-                      <img
-                        src={user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}
-                        alt={user?.name}
-                        className="w-8 h-8 rounded-full ring-2 ring-seekon-electricRed/30 group-hover:ring-seekon-electricRed/60 transition-all duration-300"
-                      />
-                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-gradient-to-r from-seekon-electricRed to-seekon-neonCyan rounded-full border-2 border-seekon-midnight"></div>
-                    </div>
-                    <span className="text-sm font-medium text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300">{user?.name}</span>
+                  <div className="relative group user-dropdown">
+                    <button
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="flex items-center space-x-3 px-3 py-2 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300"
+                    >
+                      <div className="relative">
+                        <img
+                          src={user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}
+                          alt={user?.name}
+                          className="w-8 h-8 rounded-full ring-2 ring-seekon-electricRed/30 group-hover:ring-seekon-electricRed/60 transition-all duration-300"
+                        />
+                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-gradient-to-r from-seekon-electricRed to-seekon-neonCyan rounded-full border-2 border-seekon-midnight"></div>
+                      </div>
+                      <span className="text-sm font-medium text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300">{user?.name}</span>
+                    </button>
+
+                    {/* User Dropdown */}
+                    <AnimatePresence>
+                      {isDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute right-0 mt-2 w-72 sm:w-80 md:w-96 bg-seekon-midnight/95 backdrop-blur-xl border border-seekon-charcoalGray/30 rounded-xl sm:rounded-2xl shadow-2xl z-50 overflow-hidden"
+                        >
+                          {/* User Profile Header */}
+                          <div className="p-4 sm:p-6 border-b border-seekon-charcoalGray/30">
+                            <div className="flex items-center space-x-3 sm:space-x-4">
+                              <div className="relative flex-shrink-0 group">
+                                <img
+                                  src={user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}
+                                  alt={user?.name}
+                                  className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full ring-2 ring-seekon-electricRed/30 object-cover"
+                                />
+                                <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-seekon-electricRed to-seekon-neonCyan rounded-full border-2 border-seekon-midnight"></div>
+                                
+                                {/* Photo Upload Overlay */}
+                                <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center cursor-pointer">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleProfilePhotoUpload}
+                                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                  />
+                                  <FiCamera className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
+                                </div>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-seekon-pureWhite truncate">{user?.name}</h3>
+                                <p className="text-xs sm:text-sm text-seekon-platinumSilver truncate">{user?.email}</p>
+                                <p className="text-[10px] sm:text-xs text-seekon-neonCyan mt-1">Premium Member</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Menu Options */}
+                          <div className="py-1 sm:py-2">
+                            <button className="w-full px-4 sm:px-6 py-2.5 sm:py-3 text-left text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 transition-colors duration-200 flex items-center space-x-2 sm:space-x-3">
+                              <FiEdit3 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                              <span className="text-sm sm:text-base">Edit Profile</span>
+                            </button>
+                            
+                            <button className="w-full px-4 sm:px-6 py-2.5 sm:py-3 text-left text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 transition-colors duration-200 flex items-center space-x-2 sm:space-x-3">
+                              <FiHeart className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                              <span className="text-sm sm:text-base">Wishlist</span>
+                            </button>
+                            
+                            <button className="w-full px-4 sm:px-6 py-2.5 sm:py-3 text-left text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 transition-colors duration-200 flex items-center space-x-2 sm:space-x-3">
+                              <FiShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                              <span className="text-sm sm:text-base">Order History</span>
+                            </button>
+                            
+                            <div className="border-t border-seekon-charcoalGray/30 my-1 sm:my-2"></div>
+                            
+                            <button
+                              onClick={handleLogout}
+                              className="w-full px-4 sm:px-6 py-2.5 sm:py-3 text-left text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors duration-200 flex items-center space-x-2 sm:space-x-3"
+                            >
+                              <FiLogOut className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                              <span className="text-sm sm:text-base">Logout</span>
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 ) : (
                   <Link
@@ -436,16 +571,36 @@ const Navbar = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="lg:hidden border-t border-seekon-charcoalGray/30 bg-seekon-midnight/95 backdrop-blur-md"
               >
-                <div className="py-4 space-y-4">
+                <div className="py-3 sm:py-4 space-y-3 sm:space-y-4">
+                  {/* Mobile User Profile */}
+                  {isAuthenticated && (
+                    <div className="px-3 sm:px-4 border-b border-seekon-charcoalGray/30 pb-4">
+                      <div className="flex items-center space-x-3 px-3 sm:px-4 py-2 sm:py-3">
+                        <div className="relative">
+                          <img
+                            src={user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}
+                            alt={user?.name}
+                            className="w-12 h-12 rounded-full ring-2 ring-seekon-electricRed/30"
+                          />
+                          <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-gradient-to-r from-seekon-electricRed to-seekon-neonCyan rounded-full border-2 border-seekon-midnight"></div>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-base font-semibold text-seekon-pureWhite">{user?.name}</h3>
+                          <p className="text-sm text-seekon-platinumSilver">{user?.email}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Mobile Home Icon */}
-                  <div className="px-4">
+                  <div className="px-3 sm:px-4">
                     <Link
                       to="/"
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-3 px-4 py-3 text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 w-full"
+                      className="flex items-center space-x-3 px-3 sm:px-4 py-2 sm:py-3 text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 w-full"
                     >
-                      <FiHome className="w-5 h-5" />
-                      <span>Home</span>
+                      <FiHome className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span className="text-sm sm:text-base">Home</span>
                     </Link>
                   </div>
 

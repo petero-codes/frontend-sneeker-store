@@ -46,7 +46,7 @@ const Shipping = () => {
                 </div>
                 <h3 className="font-semibold text-seekon-midnight mb-2">Standard Shipping</h3>
                 <p className="text-seekon-charcoalGray text-sm mb-3">5-7 business days</p>
-                <p className="text-seekon-electricRed font-semibold">FREE on orders over $75</p>
+                <p className="text-seekon-electricRed font-semibold">FREE on orders over KSh 7,500</p>
               </div>
 
               <div className="bg-seekon-pureWhite p-6 rounded-lg shadow-lg">
@@ -55,7 +55,7 @@ const Shipping = () => {
                 </div>
                 <h3 className="font-semibold text-seekon-midnight mb-2">Express Shipping</h3>
                 <p className="text-seekon-charcoalGray text-sm mb-3">2-3 business days</p>
-                <p className="text-seekon-electricRed font-semibold">$9.99</p>
+                <p className="text-seekon-electricRed font-semibold">KSh 1,000</p>
               </div>
 
               <div className="bg-seekon-pureWhite p-6 rounded-lg shadow-lg">
@@ -64,7 +64,7 @@ const Shipping = () => {
                 </div>
                 <h3 className="font-semibold text-seekon-midnight mb-2">Overnight</h3>
                 <p className="text-seekon-charcoalGray text-sm mb-3">Next business day</p>
-                <p className="text-seekon-electricRed font-semibold">$19.99</p>
+                <p className="text-seekon-electricRed font-semibold">KSh 2,000</p>
               </div>
             </div>
           </motion.div>

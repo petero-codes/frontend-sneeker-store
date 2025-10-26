@@ -1,5 +1,9 @@
 // Price formatting utility
 export const formatPrice = (price, currency = 'KES') => {
+  // Format with Kenyan Shilling
+  if (currency === 'KES') {
+    return `KSh ${price.toLocaleString('en-KE')}`;
+  }
   return new Intl.NumberFormat('en-KE', {
     style: 'currency',
     currency: currency,

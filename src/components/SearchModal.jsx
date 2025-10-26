@@ -112,12 +112,12 @@ const SearchModal = ({ isOpen, onClose }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-20 left-1/2 transform -translate-x-1/2 w-full max-w-2xl mx-4 bg-seekon-pureWhite rounded-xl shadow-2xl z-50"
+            className="fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 w-full max-w-sm sm:max-w-xl md:max-w-2xl mx-3 sm:mx-4 bg-seekon-pureWhite rounded-xl shadow-2xl z-50"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Search Input */}
-            <div className="p-6 border-b border-seekon-platinumSilver">
-              <div className="flex items-center space-x-4">
+            <div className="p-4 sm:p-6 border-b border-seekon-platinumSilver">
+              <div className="flex items-center space-x-3 sm:space-x-4">
                 <div className="flex-1 relative">
                   <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-seekon-charcoalGray w-5 h-5" />
                   <input

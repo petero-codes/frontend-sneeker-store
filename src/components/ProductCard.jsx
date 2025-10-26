@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FiShoppingCart, FiHeart, FiEye } from 'react-icons/fi';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../store/slices/cartSlice';
 import { formatPrice, calculateDiscount } from '../utils/formatPrice';
+import toast from 'react-hot-toast';
 
 const ProductCard = ({ product, viewMode = 'grid' }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -20,18 +23,35 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
       brand: product.brand,
       quantity: 1
     }));
+    toast.success(`${product.name} added to cart!`, {
+      icon: '🛒',
+      duration: 3000,
+    });
   };
 
   const handleQuickView = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    // Quick view functionality would go here
+    navigate(`/product/${product.id}`);
   };
 
   const handleAddToWishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    // Wishlist functionality would go here
+    
+    if (isWishlisted) {
+      setIsWishlisted(false);
+      toast.success(`${product.name} removed from wishlist!`, {
+        icon: '💔',
+        duration: 3000,
+      });
+    } else {
+      setIsWishlisted(true);
+      toast.success(`${product.name} added to wishlist!`, {
+        icon: '❤️',
+        duration: 3000,
+      });
+    }
   };
 
   // Enhanced color mapping with variety
@@ -179,7 +199,7 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
         <Link to={`/product/${product.id}`} className="block">
           <div className="flex">
             {/* Image */}
-            <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 flex-shrink-0">
               <img
                 src={product.image}
                 alt={product.name}
@@ -187,9 +207,9 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
               />
               
               {/* Badges */}
-              <div className="absolute top-2 left-2 flex flex-col space-y-1">
+              <div className="absolute top-1 left-1 sm:top-2 sm:left-2 flex flex-col space-y-1">
                 {product.discount > 0 && (
-                  <span className="bg-seekon-electricRed text-white text-xs px-2 py-1 rounded-full font-medium">
+                  <span className="bg-seekon-electricRed text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium">
                     -{product.discount}%
                   </span>
                 )}
@@ -211,9 +231,13 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
                   </button>
                   <button
                     onClick={handleAddToWishlist}
-                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-700 hover:text-red-500 transition-colors duration-200"
+                    className={`w-8 h-8 bg-white rounded-full flex items-center justify-center transition-colors duration-200 ${
+                      isWishlisted 
+                        ? 'text-red-500' 
+                        : 'text-gray-700 hover:text-red-500'
+                    }`}
                   >
-                    <FiHeart className="w-4 h-4" />
+                    <FiHeart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
                   </button>
                 </div>
               </div>
@@ -299,9 +323,9 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
           />
           
           {/* Badges */}
-          <div className="absolute top-3 left-3 flex flex-col space-y-2">
+          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col space-y-1 sm:space-y-2">
             {product.discount > 0 && (
-              <span className="bg-seekon-electricRed text-white text-xs px-2 py-1 rounded-full font-medium shadow-lg">
+              <span className="bg-seekon-electricRed text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium shadow-lg">
                 -{product.discount}%
               </span>
             )}
@@ -314,27 +338,31 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
 
           {/* Quick Actions */}
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <div className="flex space-x-3">
+            <div className="flex space-x-2 sm:space-x-3">
               <button
                 onClick={handleQuickView}
-                className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-700 hover:text-seekon-electricRed transition-colors duration-200 shadow-lg"
+                className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center text-gray-700 hover:text-seekon-electricRed transition-colors duration-200 shadow-lg"
               >
-                <FiEye className="w-5 h-5" />
+                <FiEye className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               <button
                 onClick={handleAddToWishlist}
-                className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-700 hover:text-red-500 transition-colors duration-200 shadow-lg"
+                className={`w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center transition-colors duration-200 shadow-lg ${
+                  isWishlisted 
+                    ? 'text-red-500' 
+                    : 'text-gray-700 hover:text-red-500'
+                }`}
               >
-                <FiHeart className="w-5 h-5" />
+                <FiHeart className={`w-4 h-4 sm:w-5 sm:h-5 ${isWishlisted ? 'fill-current' : ''}`} />
               </button>
             </div>
           </div>
 
           {/* Add to Cart Button Overlay */}
-          <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+          <div className="absolute bottom-2 left-2 right-2 sm:bottom-3 sm:left-3 sm:right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
             <button
               onClick={handleAddToCart}
-              className="w-full bg-gradient-to-r from-seekon-electricRed/90 to-seekon-electricRed/80 hover:from-seekon-electricRed hover:to-seekon-electricRed/90 text-white py-2.5 rounded-lg font-medium transition-all duration-200 backdrop-blur-sm border border-white/20 shadow-lg"
+              className="w-full bg-gradient-to-r from-seekon-electricRed/90 to-seekon-electricRed/80 hover:from-seekon-electricRed hover:to-seekon-electricRed/90 text-white py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-all duration-200 backdrop-blur-sm border border-white/20 shadow-lg"
             >
               Add to Cart
             </button>

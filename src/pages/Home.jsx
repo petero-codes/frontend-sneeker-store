@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchProducts } from '../store/slices/productSlice';
@@ -7,23 +7,45 @@ import ProductCard from '../components/ProductCard';
 import FilterBar from '../components/FilterBar';
 import PromotionalBanner from '../components/PromotionalBanner';
 import { SectionFallback, ProductCardSkeleton, EmptyState } from '../components/Fallbacks';
+import toast from 'react-hot-toast';
 
 const Home = () => {
   console.log('🏠 Home component rendering...');
   
   const dispatch = useDispatch();
   const { products, isLoading, error } = useSelector(state => state.products);
+  const [email, setEmail] = useState('');
 
   console.log('📦 Products state:', { products: products?.length, isLoading, error });
 
   useEffect(() => {
     console.log('🔄 Dispatching fetchProducts...');
-    dispatch(fetchProducts());
+    dispatch(fetchProducts())
+      .unwrap()
+      .then(() => {
+        toast.success('Products loaded successfully!');
+      })
+      .catch((error) => {
+        console.error('Error fetching products:', error);
+        toast.error('Failed to load products. Please try again.');
+      });
   }, [dispatch]);
 
-  const handleRetry = () => {
-    console.log('🔄 Retrying product fetch...');
-    dispatch(fetchProducts());
+  const handleNewsletterSubscribe = (e) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+    
+    // Simulate newsletter subscription
+    toast.success('Successfully subscribed to newsletter!');
+    setEmail('');
   };
 
   // Simple test render first
@@ -70,14 +92,14 @@ const Home = () => {
         textColor="text-seekon-pureWhite"
         showIcons={true}
         animated={true}
-        scrollSpeed="fast"
+        scrollSpeed="slow"
       />
       
       {/* Hero Banner */}
       <HeroBanner />
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-seekon-platinumSilver">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8 lg:py-12 bg-seekon-platinumSilver">
         {/* Trending Now Section */}
         <motion.section
           initial="hidden"
@@ -101,7 +123,7 @@ const Home = () => {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {[...Array(8)].map((_, index) => (
                 <div key={index} className="animate-pulse">
                   <div className="bg-gray-300 dark:bg-gray-700 rounded-xl h-64 mb-4"></div>
@@ -115,7 +137,7 @@ const Home = () => {
           ) : (
             <motion.div
               variants={containerVariants}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
             >
               {trendingProducts.map((product) => (
                 <motion.div key={product.id} variants={itemVariants}>
@@ -248,25 +270,33 @@ const Home = () => {
           initial="hidden"
           animate="visible"
           variants={containerVariants}
-          className="bg-gradient-to-r from-primary-600 to-accent-600 rounded-2xl p-8 md:p-12 text-center text-white"
+          className="rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 lg:p-12 text-center"
+          style={{
+            background: 'linear-gradient(135deg, #FAFAFA 0%, #1F1F1F 100%)'
+          }}
         >
           <motion.div variants={itemVariants}>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 text-[#FAFAFA]"
+                style={{ textShadow: '0 2px 4px rgba(31,31,31,0.5)' }}>
               Stay in the Loop
             </h2>
-            <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg mb-6 sm:mb-8 max-w-2xl mx-auto text-[#FAFAFA]"
+               style={{ textShadow: '0 2px 4px rgba(31,31,31,0.5)' }}>
               Get exclusive access to new drops, special offers, and style tips delivered straight to your inbox.
             </p>
-            <div className="max-w-md mx-auto flex space-x-2">
+            <div className="max-w-sm sm:max-w-md mx-auto flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 px-4 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-white/50"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="flex-1 px-4 py-3 rounded-lg text-[#1F1F1F] bg-[#FAFAFA] border-2 border-[#00A676] focus:outline-none focus:ring-2 focus:ring-[#00A676]/50 placeholder:text-gray-600"
               />
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 bg-white text-primary-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                onClick={handleNewsletterSubscribe}
+                className="px-6 py-3 bg-[#00A676] text-[#FAFAFA] font-semibold rounded-lg hover:bg-[#008A5E] transition-colors duration-200"
               >
                 Subscribe
               </motion.button>

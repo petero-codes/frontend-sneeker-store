@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiEye, FiEyeOff, FiMail, FiLock, FiUser, FiArrowRight } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -78,7 +79,10 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      toast.error('Please fix the errors below');
+      return;
+    }
 
     try {
       await register({
@@ -86,8 +90,10 @@ const Register = () => {
         email: formData.email,
         password: formData.password,
       }).unwrap();
+      toast.success('Account created successfully! Welcome to Seekon!');
     } catch (err) {
       console.error('Registration error:', err);
+      toast.error(err?.data?.message || 'Registration failed. Please try again.');
     }
   };
 

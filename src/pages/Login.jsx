@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiEye, FiEyeOff, FiMail, FiLock, FiArrowRight } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -66,12 +67,17 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      toast.error('Please fix the errors below');
+      return;
+    }
 
     try {
       await login(formData).unwrap();
+      toast.success('Welcome back!');
     } catch (err) {
       console.error('Login error:', err);
+      toast.error(err?.data?.message || 'Login failed. Please try again.');
     }
   };
 
@@ -85,10 +91,11 @@ const Login = () => {
       email: credentials.email,
       password: credentials.password,
     });
+    toast.success(`Demo credentials filled for ${credentials.role}`);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <motion.div
@@ -97,13 +104,13 @@ const Login = () => {
           className="text-center"
         >
           <Link to="/" className="inline-flex items-center space-x-2 mb-6">
-            <span className="text-3xl font-bold gradient-text">Seekon</span>
-            <span className="text-sm text-gray-500 dark:text-gray-400">Apparel</span>
+            <span className="text-3xl font-bold text-[#1F1F1F]">Seekon</span>
+            <span className="text-sm text-[#666666]">Apparel</span>
           </Link>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h2 className="text-3xl font-bold text-[#1F1F1F]">
             Welcome back
           </h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-[#666666]">
             Sign in to your account to continue
           </p>
         </motion.div>
@@ -113,9 +120,9 @@ const Login = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+          className="bg-[#00A676]/10 border border-[#00A676]/30 rounded-lg p-4"
         >
-          <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+          <h3 className="text-sm font-medium text-[#1F1F1F] mb-2">
             Demo Credentials:
           </h3>
           <div className="space-y-2">
@@ -123,7 +130,7 @@ const Login = () => {
               <button
                 key={index}
                 onClick={() => fillDemoCredentials(cred)}
-                className="block w-full text-left text-sm text-blue-700 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 transition-colors duration-200"
+                className="block w-full text-left text-sm text-[#1F1F1F] hover:text-[#00A676] transition-colors duration-200"
               >
                 <span className="font-medium">{cred.role}:</span> {cred.email} / {cred.password}
               </button>
@@ -142,12 +149,12 @@ const Login = () => {
           <div className="space-y-4">
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-[#1F1F1F] mb-2">
                 Email address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiMail className="h-5 w-5 text-gray-400" />
+                  <FiMail className="h-5 w-5 text-[#666666]" />
                 </div>
                 <input
                   id="email"
@@ -156,23 +163,23 @@ const Login = () => {
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`input-field pl-10 ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  className={`w-full px-4 py-3 pl-10 border border-[#00A676]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00A676]/50 focus:border-[#00A676] bg-[#FAFAFA] text-[#1F1F1F] placeholder:text-[#666666] ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
                   placeholder="Enter your email"
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
               )}
             </div>
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-[#1F1F1F] mb-2">
                 Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiLock className="h-5 w-5 text-gray-400" />
+                  <FiLock className="h-5 w-5 text-[#666666]" />
                 </div>
                 <input
                   id="password"
@@ -181,7 +188,7 @@ const Login = () => {
                   autoComplete="current-password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`input-field pl-10 pr-10 ${errors.password ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  className={`w-full px-4 py-3 pl-10 pr-10 border border-[#00A676]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00A676]/50 focus:border-[#00A676] bg-[#FAFAFA] text-[#1F1F1F] placeholder:text-[#666666] ${errors.password ? 'border-red-500 focus:ring-red-500' : ''}`}
                   placeholder="Enter your password"
                 />
                 <button
@@ -190,22 +197,22 @@ const Login = () => {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <FiEyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                    <FiEyeOff className="h-5 w-5 text-[#666666] hover:text-[#00A676]" />
                   ) : (
-                    <FiEye className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                    <FiEye className="h-5 w-5 text-[#666666] hover:text-[#00A676]" />
                   )}
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
+                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
               )}
             </div>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
 
@@ -216,9 +223,9 @@ const Login = () => {
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 rounded"
+                className="h-4 w-4 text-[#00A676] focus:ring-[#00A676] border-[#00A676]/30 rounded"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-[#1F1F1F]">
                 Remember me
               </label>
             </div>
@@ -226,7 +233,7 @@ const Login = () => {
             <div className="text-sm">
               <Link
                 to="/forgot-password"
-                className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors duration-200"
+                className="font-medium text-[#666666] hover:text-[#00A676] transition-colors duration-200"
               >
                 Forgot your password?
               </Link>
@@ -239,10 +246,10 @@ const Login = () => {
             disabled={isLoading}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full btn-primary flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-[#00A676] text-[#FAFAFA] font-semibold py-3 px-4 rounded-lg hover:bg-[#008A5E] transition-colors duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-[#FAFAFA] border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
                 <span>Sign in</span>
@@ -253,11 +260,11 @@ const Login = () => {
 
           {/* Sign Up Link */}
           <div className="text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-[#666666]">
               Don't have an account?{' '}
               <Link
                 to="/register"
-                className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors duration-200"
+                className="font-medium text-[#00A676] hover:text-[#008A5E] transition-colors duration-200"
               >
                 Sign up here
               </Link>
