@@ -233,6 +233,6 @@ const userSlice = createSlice({
 });
 
 export const { logout, clearError, toggleTheme, setTheme } = userSlice.actions;
-export { validateToken }; // Export for use in AuthContext
+// validateToken is already exported above as export const validateToken
 export default userSlice.reducer;
 
