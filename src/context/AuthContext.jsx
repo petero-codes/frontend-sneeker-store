@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { loginUser, registerUser, logout, clearError } from '../store/slices/userSlice';
+import { loginUser, registerUser, logout, clearError, validateToken } from '../store/slices/userSlice';
 
 const AuthContext = createContext();
 
@@ -19,6 +19,15 @@ export const AuthProvider = ({ children }) => {
   const { user, isAuthenticated, isLoading, error, theme } = useSelector(state => state.user);
 
   console.log('👤 Auth state:', { user, isAuthenticated, isLoading, error, theme });
+
+  // Check for existing token on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+    if (token && !isAuthenticated) {
+      console.log('🔍 Token found, validating...');
+      dispatch(validateToken());
+    }
+  }, [dispatch, isAuthenticated]);
 
   // Apply theme to document
   useEffect(() => {
