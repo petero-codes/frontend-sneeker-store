@@ -3,56 +3,92 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiX, FiMinus, FiPlus, FiShoppingBag, FiTrash2 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { closeCart, updateQuantity, removeFromCart, clearCart } from '../store/slices/cartSlice';
+import { closeCart, updateQuantity, removeFromCart, clearCart, updateQuantityAPI, removeFromCartAPI, clearCartAPI } from '../store/slices/cartSlice';
 import { formatPrice } from '../utils/formatPrice';
 import toast from 'react-hot-toast';
 
 const CartDrawer = () => {
   const dispatch = useDispatch();
   const { items, totalItems, totalPrice, isOpen } = useSelector(state => state.cart);
+  const user = useSelector(state => state.user.user);
 
-  const handleQuantityChange = (item, newQuantity) => {
+  const handleQuantityChange = async (item, newQuantity) => {
     if (newQuantity <= 0) {
       handleRemoveItem(item);
       return;
     }
     
-    dispatch(updateQuantity({
-      id: item.id,
-      size: item.size,
-      color: item.color,
-      quantity: newQuantity
-    }));
-    
-    if (newQuantity > item.quantity) {
-      toast.success(`Increased ${item.name} quantity to ${newQuantity}`, {
-        duration: 2000,
-      });
-    } else {
-      toast.success(`Decreased ${item.name} quantity to ${newQuantity}`, {
-        duration: 2000,
-      });
+    try {
+      // If user is logged in, use API
+      if (user && user.id) {
+        await dispatch(updateQuantityAPI({
+          userId: user.id,
+          productId: item.id,
+          size: item.size,
+          color: item.color,
+          quantity: newQuantity
+        })).unwrap();
+      } else {
+        // If user not logged in, use local Redux store
+        dispatch(updateQuantity({
+          id: item.id,
+          size: item.size,
+          color: item.color,
+          quantity: newQuantity
+        }));
+      }
+      
+      if (newQuantity > item.quantity) {
+        toast.success(`Increased ${item.name} quantity to ${newQuantity}`);
+      } else {
+        toast.success(`Decreased ${item.name} quantity to ${newQuantity}`);
+      }
+    } catch (error) {
+      toast.error('Failed to update quantity');
     }
   };
 
-  const handleRemoveItem = (item) => {
-    dispatch(removeFromCart({
-      id: item.id,
-      size: item.size,
-      color: item.color
-    }));
-    toast.success(`${item.name} removed from cart`, {
-      icon: '🗑️',
-      duration: 3000,
-    });
+  const handleRemoveItem = async (item) => {
+    try {
+      // If user is logged in, use API
+      if (user && user.id) {
+        await dispatch(removeFromCartAPI({
+          userId: user.id,
+          productId: item.id,
+          size: item.size,
+          color: item.color
+        })).unwrap();
+      } else {
+        // If user not logged in, use local Redux store
+        dispatch(removeFromCart({
+          id: item.id,
+          size: item.size,
+          color: item.color
+        }));
+      }
+      toast.success(`${item.name} removed from cart`, {
+        icon: '🗑️',
+      });
+    } catch (error) {
+      toast.error('Failed to remove item');
+    }
   };
 
-  const handleClearCart = () => {
-    dispatch(clearCart());
-    toast.success('Cart cleared successfully', {
-      icon: '✨',
-      duration: 3000,
-    });
+  const handleClearCart = async () => {
+    try {
+      // If user is logged in, use API
+      if (user && user.id) {
+        await dispatch(clearCartAPI(user.id)).unwrap();
+      } else {
+        // If user not logged in, use local Redux store
+        dispatch(clearCart());
+      }
+      toast.success('Cart cleared successfully', {
+        icon: '✨',
+      });
+    } catch (error) {
+      toast.error('Failed to clear cart');
+    }
   };
 
   return (
@@ -140,34 +176,32 @@ const CartDrawer = () => {
                       </div>
 
                       {/* Quantity Controls */}
-                      <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-1">
-                        <div className="flex items-center space-x-1 sm:space-x-2">
-                          <button
-                            onClick={() => handleQuantityChange(item, item.quantity - 1)}
-                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center justify-center transition-colors duration-200"
-                          >
-                            <FiMinus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
-                          </button>
-                          <span className="w-6 sm:w-8 text-center text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => handleQuantityChange(item, item.quantity + 1)}
-                            disabled={item.quantity >= item.maxQuantity}
-                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors duration-200"
-                          >
-                            <FiPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
-                          </button>
-                        </div>
-
-                        {/* Remove Button */}
+                      <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => handleRemoveItem(item)}
-                          className="p-1.5 sm:p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
+                          onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                          className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center justify-center transition-colors"
                         >
-                          <FiTrash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500" />
+                          <FiMinus className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                        <span className="w-8 text-center text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                          disabled={item.quantity >= item.maxQuantity}
+                          className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                        >
+                          <FiPlus className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                         </button>
                       </div>
+
+                      {/* Remove Button */}
+                      <button
+                        onClick={() => handleRemoveItem(item)}
+                        className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      >
+                        <FiTrash2 className="w-4 h-4 text-red-500" />
+                      </button>
                     </motion.div>
                   ))}
                 </div>
@@ -192,14 +226,14 @@ const CartDrawer = () => {
                   <Link
                     to="/checkout"
                     onClick={() => dispatch(closeCart())}
-                    className="w-full btn-primary text-center block py-2.5 sm:py-3 text-sm sm:text-base"
+                    className="w-full text-center block py-2.5 sm:py-3 text-sm sm:text-base bg-[#00A676] hover:bg-[#008A5E] text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl active:scale-[0.98]"
                   >
                     Proceed to Checkout
                   </Link>
                   
                   <button
                     onClick={handleClearCart}
-                    className="w-full btn-secondary py-2 sm:py-2.5 text-sm sm:text-base"
+                    className="w-full py-2.5 sm:py-3 text-sm sm:text-base bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]"
                   >
                     Clear Cart
                   </button>
@@ -207,7 +241,7 @@ const CartDrawer = () => {
                   <Link
                     to="/collection"
                     onClick={() => dispatch(closeCart())}
-                    className="w-full text-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm sm:text-base font-medium transition-colors duration-200"
+                    className="w-full text-center text-[#00A676] hover:text-[#008A5E] text-sm sm:text-base font-medium transition-colors duration-200"
                   >
                     Continue Shopping
                   </Link>

@@ -97,6 +97,26 @@ export const api = {
     ];
   },
 
+  getOrderDetails: async (orderId) => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return {
+      id: orderId,
+      date: '2024-07-12',
+      status: 'delivered',
+      total: 12998,
+      paymentMethod: 'M-Pesa',
+      shippingMethod: 'Standard Delivery',
+      shippingAddress: 'Nairobi, Kenya',
+      items: [
+        { name: 'Slim-Fit Easy-Iron Shirt', quantity: 1, price: 3499, image: null },
+        { name: 'Slim-Fit Easy-Iron Shirt', quantity: 1, price: 3499, image: null },
+        { name: 'Slim-Fit Easy-Iron Shirt', quantity: 1, price: 3499, image: null },
+        { name: 'Classic Oxford Button-Down Shirt', quantity: 1, price: 3999, image: null },
+        { name: 'Chino Pants', quantity: 1, price: 5500, image: null },
+      ],
+    };
+  },
+
   // Enhanced AI Chat with comprehensive website intelligence
   sendChatMessage: async (message, userId) => {
     await new Promise(resolve => setTimeout(resolve, 1000));

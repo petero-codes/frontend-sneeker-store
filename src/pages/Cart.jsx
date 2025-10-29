@@ -5,6 +5,7 @@ import { FiMinus, FiPlus, FiTrash2, FiShoppingBag, FiArrowRight } from 'react-ic
 import { useSelector, useDispatch } from 'react-redux';
 import { updateQuantity, removeFromCart, clearCart } from '../store/slices/cartSlice';
 import { formatPrice } from '../utils/formatPrice';
+import toast from 'react-hot-toast';
 
 const Cart = () => {
   const dispatch = useDispatch();
@@ -28,7 +29,15 @@ const Cart = () => {
   };
 
   const handleClearCart = () => {
-    dispatch(clearCart());
+    if (items.length === 0) {
+      toast.error('Your cart is already empty!');
+      return;
+    }
+    
+    if (window.confirm(`Are you sure you want to clear all ${items.length} item(s) from your cart?`)) {
+      dispatch(clearCart());
+      toast.success('Cart cleared successfully!');
+    }
   };
 
   const containerVariants = {
@@ -105,11 +114,11 @@ const Cart = () => {
                 <motion.div
                   key={`${item.id}-${item.size}-${item.color}`}
                   variants={itemVariants}
-                  className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
+                  className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-lg border border-gray-200 dark:border-gray-700"
                 >
-                  <div className="flex items-center space-x-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     {/* Product Image */}
-                    <div className="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
                       <img
                         src={item.image}
                         alt={item.name}
@@ -118,52 +127,57 @@ const Cart = () => {
                     </div>
 
                     {/* Product Details */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                    <div className="flex-1 min-w-0 w-full sm:w-auto">
+                      <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-gray-100 mb-1">
                         {item.name}
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-2">
                         {item.brand} • Size {item.size} • {item.color}
                       </p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
                         {formatPrice(item.price)}
                       </p>
                     </div>
 
-                    {/* Quantity Controls */}
-                    <div className="flex items-center space-x-3">
+                    {/* Quantity Controls & Actions */}
+                    <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 sm:gap-4">
+                      <div className="flex items-center space-x-2 sm:space-x-3">
+                        <button
+                          onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center justify-center transition-colors duration-200"
+                        >
+                          <FiMinus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                        <span className="w-8 sm:w-10 text-center text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                          disabled={item.quantity >= item.maxQuantity}
+                          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors duration-200"
+                        >
+                          <FiPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                      </div>
+
+                      {/* Remove Button */}
                       <button
-                        onClick={() => handleQuantityChange(item, item.quantity - 1)}
-                        className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center justify-center transition-colors duration-200"
+                        onClick={() => handleRemoveItem(item)}
+                        className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
                       >
-                        <FiMinus className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                      </button>
-                      <span className="w-8 text-center font-medium text-gray-900 dark:text-gray-100">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() => handleQuantityChange(item, item.quantity + 1)}
-                        disabled={item.quantity >= item.maxQuantity}
-                        className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors duration-200"
-                      >
-                        <FiPlus className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        <FiTrash2 className="w-4 h-4 text-red-500" />
                       </button>
                     </div>
 
-                    {/* Item Total */}
-                    <div className="text-right">
-                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        {formatPrice(item.price * item.quantity)}
-                      </p>
+                    {/* Item Total - Mobile */}
+                    <div className="sm:hidden w-full pt-2 border-t border-gray-200 dark:border-gray-700">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Item Total:</span>
+                        <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                          {formatPrice(item.price * item.quantity)}
+                        </p>
+                      </div>
                     </div>
-
-                    {/* Remove Button */}
-                    <button
-                      onClick={() => handleRemoveItem(item)}
-                      className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
-                    >
-                      <FiTrash2 className="w-4 h-4 text-red-500" />
-                    </button>
                   </div>
                 </motion.div>
               ))}
@@ -174,11 +188,11 @@ const Cart = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="mt-6"
+              className="mt-4 sm:mt-6 flex items-center justify-center sm:justify-start"
             >
               <button
                 onClick={handleClearCart}
-                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium transition-colors duration-200"
+                className="px-4 py-2 sm:px-6 sm:py-2.5 text-sm sm:text-base bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg w-full sm:w-auto"
               >
                 Clear Cart
               </button>

@@ -5,6 +5,8 @@ import { FiStar, FiHeart, FiShare2, FiMinus, FiPlus, FiShoppingCart, FiArrowLeft
 import { useSelector, useDispatch } from 'react-redux';
 import { addToCart } from '../store/slices/cartSlice';
 import { fetchProducts } from '../store/slices/productSlice';
+import { addToWishlistLocal, removeFromWishlistLocal } from '../store/slices/wishlistSlice';
+import { useAuth } from '../context/AuthContext';
 import ProductCard from '../components/ProductCard';
 import { formatPrice, calculateDiscount, getRatingStars } from '../utils/formatPrice';
 import toast from 'react-hot-toast';
@@ -13,8 +15,10 @@ const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { isAuthenticated } = useAuth();
   
   const { products, isLoading } = useSelector(state => state.products);
+  const wishlist = useSelector(state => state.wishlist.items);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
@@ -35,6 +39,14 @@ const ProductDetail = () => {
       setSelectedColor(product.colors[0] || '');
     }
   }, [product]);
+
+  // Check if product is in wishlist
+  useEffect(() => {
+    if (product) {
+      const inWishlist = wishlist.some(item => item.id === product.id);
+      setIsWishlisted(inWishlist);
+    }
+  }, [product, wishlist]);
 
   if (isLoading) {
     return (
@@ -63,25 +75,89 @@ const ProductDetail = () => {
   }
 
   const handleAddToCart = () => {
-    if (!selectedSize || !selectedColor) {
-      toast.error('Please select size and color');
+    // Check authentication FIRST - redirect to login if not authenticated
+    if (!isAuthenticated) {
+      // Store redirect path for after login
+      const currentPath = window.location.pathname;
+      localStorage.setItem('redirectAfterLogin', currentPath);
+      
+      // Store product in sessionStorage for pending action
+      const pendingItem = {
+        product,
+        size: selectedSize,
+        color: selectedColor,
+        quantity
+      };
+      sessionStorage.setItem('pendingCartItem', JSON.stringify(pendingItem));
+      
+      toast.info('Please login to add items to your cart', {
+        icon: '🔐',
+        duration: 2500,
+      });
+      
+      // Navigate to login immediately
+      navigate('/login');
       return;
     }
+    
+    try {
+      if (!selectedSize || !selectedColor) {
+        toast.error('Please select size and color');
+        return;
+      }
 
-    dispatch(addToCart({
-      product,
-      size: selectedSize,
-      color: selectedColor,
-      quantity
-    }));
+      dispatch(addToCart({
+        product,
+        size: selectedSize,
+        color: selectedColor,
+        quantity
+      }));
 
-    toast.success(`${product.name} added to cart!`);
+      toast.success(`${product.name} added to cart!`);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Failed to add item to cart. Please try again.');
+    }
   };
 
   const handleQuantityChange = (change) => {
     const newQuantity = quantity + change;
     if (newQuantity >= 1 && newQuantity <= 10) {
       setQuantity(newQuantity);
+    }
+  };
+
+  const handleWishlist = () => {
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      // Store redirect path for after login
+      const currentPath = window.location.pathname;
+      localStorage.setItem('redirectAfterLogin', currentPath);
+      
+      // Store product to add to wishlist after login
+      sessionStorage.setItem('pendingWishlistItem', JSON.stringify(product));
+      toast.info('Please login to add items to your wishlist', {
+        icon: '🔐',
+        duration: 2500,
+      });
+      navigate('/login');
+      return;
+    }
+    
+    if (isWishlisted) {
+      // Remove from wishlist
+      dispatch(removeFromWishlistLocal({ productId: product.id }));
+      setIsWishlisted(false);
+      toast.success(`${product.name} removed from wishlist!`, {
+        icon: '💔',
+      });
+    } else {
+      // Add to wishlist
+      dispatch(addToWishlistLocal({ product }));
+      setIsWishlisted(true);
+      toast.success(`${product.name} added to wishlist!`, {
+        icon: '❤️',
+      });
     }
   };
 
@@ -239,10 +315,10 @@ const ProductDetail = () => {
                   <button
                     key={color}
                     onClick={() => setSelectedColor(color)}
-                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 transition-colors duration-200 ${
+                    className={`rounded-full border-2 transition-all duration-200 ${
                       selectedColor === color
-                        ? 'border-primary-600'
-                        : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                        ? 'w-14 h-14 sm:w-16 sm:h-16 border-gray-900 dark:border-white shadow-lg scale-110'
+                        : 'w-10 h-10 sm:w-12 sm:h-12 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                     }`}
                     style={{
                       backgroundColor: color.toLowerCase().includes('black') ? '#000' :
@@ -298,7 +374,7 @@ const ProductDetail = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setIsWishlisted(!isWishlisted)}
+                  onClick={handleWishlist}
                   className={`p-2.5 sm:p-3 rounded-lg border transition-colors duration-200 ${
                     isWishlisted
                       ? 'border-[#00A676] bg-[#00A676]/10 text-[#00A676]'
@@ -311,19 +387,35 @@ const ProductDetail = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    if (navigator.share) {
-                      navigator.share({
-                        title: product.name,
-                        text: product.description,
-                        url: window.location.href,
+                  onClick={async () => {
+                    const productLink = window.location.href;
+                    try {
+                      // Try native share first (mobile)
+                      if (navigator.share) {
+                        await navigator.share({
+                          title: product.name,
+                          text: product.description,
+                          url: productLink,
+                        });
+                        toast.success('Product shared successfully!', { icon: '📤', duration: 2000 });
+                      }
+                    } catch (error) {
+                      // User cancelled share, fall through to copy
+                    }
+                    
+                    // Always copy to clipboard as fallback
+                    try {
+                      await navigator.clipboard.writeText(productLink);
+                      toast.success('Product link copied to clipboard!', { 
+                        icon: '📋',
+                        duration: 3000,
                       });
-                    } else {
-                      toast.success('Link copied to clipboard!');
-                      navigator.clipboard.writeText(window.location.href);
+                    } catch (err) {
+                      toast.error('Failed to copy link. Please try again.', { duration: 2000 });
                     }
                   }}
                   className="p-2.5 sm:p-3 rounded-lg border border-[#00A676]/30 text-[#1F1F1F] hover:border-[#00A676] hover:bg-[#00A676]/5 transition-colors duration-200"
+                  title="Share or copy product link"
                 >
                   <FiShare2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 </motion.button>

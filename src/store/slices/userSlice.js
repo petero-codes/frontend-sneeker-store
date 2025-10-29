@@ -1,33 +1,24 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-// Mock API call for user authentication
+// Mock login for frontend-only authentication
 export const loginUser = createAsyncThunk(
   'user/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      // Simulate API call
+      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Check if admin credentials
+      const isAdmin = credentials.email === 'admin@seekon.com' && credentials.password === 'admin123';
+      
       // Mock successful login
-      if (credentials.email === 'admin@seekon.com' && credentials.password === 'admin123') {
-        return {
-          id: 1,
-          name: 'Admin User',
-          email: 'admin@seekon.com',
-          role: 'admin',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
-        };
-      } else if (credentials.email === 'user@seekon.com' && credentials.password === 'user123') {
-        return {
-          id: 2,
-          name: 'John Doe',
-          email: 'user@seekon.com',
-          role: 'user',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
-        };
-      } else {
-        throw new Error('Invalid credentials');
-      }
+      return {
+        id: Date.now(),
+        name: isAdmin ? 'Admin User' : credentials.name || 'Demo User',
+        email: credentials.email,
+        role: isAdmin ? 'admin' : 'user',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'
+      };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -79,6 +70,11 @@ const userSlice = createSlice({
     },
     setTheme: (state, action) => {
       state.theme = action.payload;
+    },
+    updateAvatar: (state, action) => {
+      if (state.user) {
+        state.user.avatar = action.payload;
+      }
     },
   },
   extraReducers: (builder) => {

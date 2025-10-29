@@ -140,18 +140,18 @@ const AIChatAssistant = () => {
 
   return (
     <>
-      {/* Chat Button - Enhanced Responsive */}
+      {/* Chat Button - Glassmorphic Design */}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 md:bottom-6 md:right-6 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white rounded-full shadow-2xl shadow-cyan-400/50 flex items-center justify-center z-40 transition-all duration-300 backdrop-blur-sm border border-white/20"
+        className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 md:bottom-5 md:right-5 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/40 backdrop-blur-xl border border-white/50 hover:bg-white/50 hover:border-white/60 text-white rounded-full shadow-2xl flex items-center justify-center z-40 transition-all duration-300"
         aria-label="Open Seekon AI Assistant"
       >
         <div className="relative">
           <FiMessageCircle className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
           {totalItems > 0 && (
-            <div className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 md:-top-2 md:-right-2 w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5 bg-white text-cyan-500 text-xs rounded-full flex items-center justify-center font-bold animate-pulse">
+            <div className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 md:-top-1.5 md:-right-1.5 w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 bg-gradient-to-r from-[#00A676] to-[#008A5E] text-white rounded-full flex items-center justify-center font-bold animate-pulse text-[9px] sm:text-[10px] md:text-[11px] shadow-lg">
               {totalItems}
             </div>
           )}
@@ -167,16 +167,16 @@ const AIChatAssistant = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
               onClick={() => setIsOpen(false)}
             />
 
-            {/* Chat Window - Enhanced Responsive */}
+            {/* Chat Window - Full Overlay on Mobile, Corner Window on Desktop */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: 20 }}
-              className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 md:bottom-6 md:right-6 w-[calc(100vw-1.5rem)] sm:w-[calc(100vw-2rem)] md:w-[420px] h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] md:h-[600px] max-h-[600px] bg-seekon-midnight/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 z-50 flex flex-col overflow-hidden"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed inset-4 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[420px] sm:h-[600px] h-[calc(100vh-2rem)] bg-seekon-midnight/95 backdrop-blur-xl rounded-2xl sm:rounded-2xl shadow-2xl border border-white/20 z-[9999] flex flex-col overflow-hidden"
             >
               {/* Header - Enhanced Responsive */}
               <div className="flex items-center justify-between p-2 sm:p-3 md:p-4 border-b border-white/20 bg-gradient-to-r from-seekon-electricRed/20 to-seekon-neonCyan/20">

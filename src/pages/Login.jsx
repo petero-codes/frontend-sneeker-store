@@ -1,29 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FiEye, FiEyeOff, FiMail, FiLock, FiArrowRight } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiEye, FiEyeOff, FiMail, FiLock, FiArrowRight, FiMenu, FiX } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
+import { useDispatch } from 'react-redux';
+import { loginUser, registerUser } from '../store/slices/userSlice';
+import { addToWishlistLocal } from '../store/slices/wishlistSlice';
+import { addToCart } from '../store/slices/cartSlice';
 import toast from 'react-hot-toast';
+import Logo3D from '../components/Logo3D';
 
 const Login = () => {
+  const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
-  const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
+  const { login, isLoading, error, clearError, isAuthenticated, user } = useAuth();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from?.pathname || '/';
 
+  // Close menu when clicking outside
   useEffect(() => {
-    if (isAuthenticated) {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // Redirect based on role
+      if (user.role === 'admin' || user.role === 'superadmin') {
+        navigate('/admin/dashboard', { replace: true });
+      } else {
       navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate, from]);
+    }
+  }, [isAuthenticated, user, navigate, from]);
 
   useEffect(() => {
     return () => clearError();
@@ -47,6 +79,14 @@ const Login = () => {
 
   const validateForm = () => {
     const newErrors = {};
+
+    if (isSignUp) {
+      if (!formData.name) {
+        newErrors.name = 'Name is required';
+      } else if (formData.name.length < 2) {
+        newErrors.name = 'Name must be at least 2 characters';
+      }
+    }
 
     if (!formData.email) {
       newErrors.email = 'Email is required';
@@ -73,69 +113,230 @@ const Login = () => {
     }
 
     try {
-      await login(formData).unwrap();
-      toast.success('Welcome back!');
+      const loadingMessage = isSignUp ? 'Creating your account...' : 'Signing you in...';
+      toast.loading(loadingMessage, { id: 'login-submit' });
+      
+      let result;
+      if (isSignUp) {
+        result = await dispatch(registerUser(formData)).unwrap();
+      } else {
+        result = await dispatch(loginUser(formData)).unwrap();
+      }
+      
+      // Check for pending cart item and add it
+      const pendingCartItem = sessionStorage.getItem('pendingCartItem');
+      if (pendingCartItem) {
+        try {
+          const item = JSON.parse(pendingCartItem);
+          
+          // Handle both structures: { product, size, color, quantity } from ProductDetail
+          // and { id, name, price, image, brand, size, color, quantity } from ProductCard
+          const productToAdd = item.product || item;
+          
+          dispatch(addToCart({
+            product: productToAdd,
+            size: item.size,
+            color: item.color || item.color,
+            quantity: item.quantity
+          }));
+          sessionStorage.removeItem('pendingCartItem');
+          toast.success(`${productToAdd.name} added to cart!`, {
+            icon: '🛒',
+          });
+        } catch (error) {
+          console.error('Error adding pending cart item:', error);
+        }
+      }
+      
+      // Check for pending wishlist item and add it
+      const pendingItem = sessionStorage.getItem('pendingWishlistItem');
+      if (pendingItem) {
+        try {
+          const product = JSON.parse(pendingItem);
+          dispatch(addToWishlistLocal({ product }));
+          sessionStorage.removeItem('pendingWishlistItem');
+          toast.success(`${product.name} added to wishlist!`, {
+            icon: '❤️',
+          });
+        } catch (error) {
+          console.error('Error adding pending wishlist item:', error);
+        }
+      }
+      
+      // Get redirect path from localStorage if available
+      const redirectPath = localStorage.getItem('redirectAfterLogin');
+      localStorage.removeItem('redirectAfterLogin');
+      
+      // Check user role from response and redirect
+      if (result.role === 'admin' || result.role === 'superadmin') {
+        toast.success('Welcome back Admin!', { id: 'login-submit' });
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        toast.success(isSignUp ? 'Account created successfully!' : 'Welcome back!', { id: 'login-submit' });
+        // Use redirectPath if available, otherwise use 'from'
+        navigate(redirectPath || from, { replace: true });
+      }
     } catch (err) {
-      console.error('Login error:', err);
-      toast.error(err?.data?.message || 'Login failed. Please try again.');
+      console.error('Auth error:', err);
+      toast.error(isSignUp ? 'Registration failed. Please try again.' : 'Login failed. Please try again.', { id: 'login-submit' });
     }
   };
 
-  const demoCredentials = [
-    { email: 'admin@seekon.com', password: 'admin123', role: 'Admin' },
-    { email: 'user@seekon.com', password: 'user123', role: 'User' },
-  ];
-
-  const fillDemoCredentials = (credentials) => {
-    setFormData({
-      email: credentials.email,
-      password: credentials.password,
-    });
-    toast.success(`Demo credentials filled for ${credentials.role}`);
-  };
-
   return (
-    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 relative">
+      {/* Full-page background 3D Logo */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-40 dark:opacity-50 pointer-events-none z-0">
+        <div className="w-full h-full max-w-4xl max-h-96">
+          <Logo3D width="100%" height="100%" />
+        </div>
+      </div>
+
+      {/* Content Wrapper to ensure it's above the background */}
+      <div className="relative z-10 flex flex-col flex-grow">
+      {/* 🔹 Header */}
+      <header className="relative flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 bg-gray-900/40 backdrop-blur-xl shadow-md border-b border-gray-200/20 dark:border-gray-700/30 z-[10000]">
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          <Link to="/" className="flex flex-col items-center group flex-shrink-0">
+            <img 
+              src="/seekon_bg-removebg-preview.png" 
+              alt="Seekon Apparel Logo" 
+              className="h-8 sm:h-10 w-auto object-contain opacity-100 group-hover:opacity-100 transition-opacity duration-200"
+            />
+          </Link>
+        </div>
+
+        {/* Seekon Apparel Text - Responsive Centered */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 w-full">
+          <span 
+            className="font-black text-[12px] sm:text-2xl md:text-3xl lg:text-4xl text-gray-800 dark:text-gray-100 uppercase block text-center px-1 sm:px-0"
+            style={{ 
+              fontFamily: 'Impact, Arial Black, sans-serif',
+              fontWeight: 900,
+              textShadow: '4px 4px 8px rgba(0,0,0,0.5), -2px -2px 6px rgba(255,255,255,0.4)',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            S E E K O N &nbsp; A P P A R E L
+          </span>
+        </div>
+
+        {/* Hamburger Menu */}
+        <div ref={menuRef} className="relative">
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="relative p-2 text-white hover:bg-white/10 rounded-lg transition-all duration-200"
+          >
+            {isMenuOpen ? (
+              <FiX className="w-6 h-6" />
+            ) : (
+              <FiMenu className="w-6 h-6" />
+            )}
+          </button>
+
+          {/* Dropdown Menu */}
+          <AnimatePresence>
+            {isMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute right-0 mt-2 bg-gray-900/40 backdrop-blur-xl shadow-xl border border-gray-200/20 dark:border-gray-700/30 rounded-lg overflow-hidden z-[9999]"
+              >
+                <div className="py-2 space-y-1 min-w-[200px]">
+                  <Link
+                    to="/about"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-5 py-2.5 hover:bg-white/10 text-white transition-all duration-200 font-medium text-sm mx-2 rounded-lg"
+                  >
+                    About
+                  </Link>
+                  <Link
+                    to="/careers"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-5 py-2.5 hover:bg-white/10 text-white transition-all duration-200 font-medium text-sm mx-2 rounded-lg"
+                  >
+                    Careers
+                  </Link>
+                  <Link
+                    to="/press"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-5 py-2.5 hover:bg-white/10 text-white transition-all duration-200 font-medium text-sm mx-2 rounded-lg"
+                  >
+                    Press
+                  </Link>
+                  <Link
+                    to="/sustainability"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-5 py-2.5 hover:bg-white/10 text-white transition-all duration-200 font-medium text-sm mx-2 rounded-lg"
+                  >
+                    Sustainability
+                  </Link>
+                  <Link
+                    to="/investors"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-5 py-2.5 hover:bg-white/10 text-white transition-all duration-200 font-medium text-sm mx-2 rounded-lg"
+                  >
+                    Investors
+                  </Link>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </header>
+
+      {/* Split Screen Content */}
+      <div className="flex flex-grow lg:flex-row flex-col">
+        {/* Left Side - Brand Aesthetic */}
+        <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 items-center justify-center overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <img 
+              src="/seekon_bg-removebg-preview.png" 
+              alt="Seekon Background" 
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/90 via-transparent to-gray-900/90"></div>
+          
+          {/* Content */}
+          <div className="relative z-10 text-center px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <img 
+                src="/seekon_bg-removebg-preview.png" 
+                alt="Seekon Logo" 
+                className="w-24 h-24 mx-auto mb-6 object-contain"
+              />
+              <h1 className="text-5xl font-bold text-white mb-4">Welcome Back</h1>
+              <p className="text-xl text-gray-300">
+                Discover premium fashion that defines your style
+              </p>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Right Side - Login Form */}
+        <div className="lg:w-1/2 flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-[#FAFAFA]">
+          <div className="w-full max-w-md space-y-6 sm:space-y-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
-          <Link to="/" className="inline-flex items-center space-x-2 mb-6">
-            <span className="text-3xl font-bold text-[#1F1F1F]">Seekon</span>
-            <span className="text-sm text-[#666666]">Apparel</span>
-          </Link>
-          <h2 className="text-3xl font-bold text-[#1F1F1F]">
-            Welcome back
+              <h2 className="text-2xl sm:text-3xl font-bold text-[#1F1F1F] mb-2">
+                {isSignUp ? 'Create account' : 'Welcome back'}
           </h2>
-          <p className="mt-2 text-[#666666]">
-            Sign in to your account to continue
+              <p className="text-sm sm:text-base text-[#666666]">
+                {isSignUp ? 'Sign up to get started' : 'Sign in to your account to continue'}
           </p>
-        </motion.div>
-
-        {/* Demo Credentials */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-[#00A676]/10 border border-[#00A676]/30 rounded-lg p-4"
-        >
-          <h3 className="text-sm font-medium text-[#1F1F1F] mb-2">
-            Demo Credentials:
-          </h3>
-          <div className="space-y-2">
-            {demoCredentials.map((cred, index) => (
-              <button
-                key={index}
-                onClick={() => fillDemoCredentials(cred)}
-                className="block w-full text-left text-sm text-[#1F1F1F] hover:text-[#00A676] transition-colors duration-200"
-              >
-                <span className="font-medium">{cred.role}:</span> {cred.email} / {cred.password}
-              </button>
-            ))}
-          </div>
         </motion.div>
 
         {/* Login Form */}
@@ -147,14 +348,36 @@ const Login = () => {
           onSubmit={handleSubmit}
         >
           <div className="space-y-4">
+                {/* Name Field - Only show during sign up */}
+                {isSignUp && (
+                  <div>
+                    <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-[#1F1F1F] mb-2">
+                      Full name
+                    </label>
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      autoComplete="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-[#00A676]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00A676]/50 focus:border-[#00A676] bg-[#FAFAFA] text-sm sm:text-base text-[#1F1F1F] placeholder:text-[#666666] ${errors.name ? 'border-red-500 focus:ring-red-500' : ''}`}
+                      placeholder="e.g. John Doe"
+                    />
+                    {errors.name && (
+                      <p className="mt-1 text-xs text-red-600">{errors.name}</p>
+                    )}
+                  </div>
+                )}
+
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[#1F1F1F] mb-2">
+                  <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-[#1F1F1F] mb-2">
                 Email address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiMail className="h-5 w-5 text-[#666666]" />
+                      <FiMail className="h-4 w-4 sm:h-5 sm:w-5 text-[#666666]" />
                 </div>
                 <input
                   id="email"
@@ -163,23 +386,23 @@ const Login = () => {
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 pl-10 border border-[#00A676]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00A676]/50 focus:border-[#00A676] bg-[#FAFAFA] text-[#1F1F1F] placeholder:text-[#666666] ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
-                  placeholder="Enter your email"
+                      className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 pl-9 sm:pl-10 border border-[#00A676]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00A676]/50 focus:border-[#00A676] bg-[#FAFAFA] text-sm sm:text-base text-[#1F1F1F] placeholder:text-[#666666] ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  placeholder="john.doe@example.com"
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                    <p className="mt-1 text-xs text-red-600">{errors.email}</p>
               )}
             </div>
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[#1F1F1F] mb-2">
+                  <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-[#1F1F1F] mb-2">
                 Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiLock className="h-5 w-5 text-[#666666]" />
+                      <FiLock className="h-4 w-4 sm:h-5 sm:w-5 text-[#666666]" />
                 </div>
                 <input
                   id="password"
@@ -188,8 +411,8 @@ const Login = () => {
                   autoComplete="current-password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 pl-10 pr-10 border border-[#00A676]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00A676]/50 focus:border-[#00A676] bg-[#FAFAFA] text-[#1F1F1F] placeholder:text-[#666666] ${errors.password ? 'border-red-500 focus:ring-red-500' : ''}`}
-                  placeholder="Enter your password"
+                      className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 pl-9 sm:pl-10 pr-9 sm:pr-10 border border-[#00A676]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00A676]/50 focus:border-[#00A676] bg-[#FAFAFA] text-sm sm:text-base text-[#1F1F1F] placeholder:text-[#666666] ${errors.password ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  placeholder="●●●●●●●●"
                 />
                 <button
                   type="button"
@@ -197,48 +420,24 @@ const Login = () => {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <FiEyeOff className="h-5 w-5 text-[#666666] hover:text-[#00A676]" />
+                        <FiEyeOff className="h-4 w-4 sm:h-5 sm:w-5 text-[#666666] hover:text-[#00A676]" />
                   ) : (
-                    <FiEye className="h-5 w-5 text-[#666666] hover:text-[#00A676]" />
+                        <FiEye className="h-4 w-4 sm:h-5 sm:w-5 text-[#666666] hover:text-[#00A676]" />
                   )}
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                    <p className="mt-1 text-xs text-red-600">{errors.password}</p>
               )}
             </div>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-sm text-red-600">{error}</p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
-
-          {/* Remember Me & Forgot Password */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-[#00A676] focus:ring-[#00A676] border-[#00A676]/30 rounded"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-[#1F1F1F]">
-                Remember me
-              </label>
-            </div>
-
-            <div className="text-sm">
-              <Link
-                to="/forgot-password"
-                className="font-medium text-[#666666] hover:text-[#00A676] transition-colors duration-200"
-              >
-                Forgot your password?
-              </Link>
-            </div>
-          </div>
 
           {/* Submit Button */}
           <motion.button
@@ -246,35 +445,42 @@ const Login = () => {
             disabled={isLoading}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full bg-[#00A676] text-[#FAFAFA] font-semibold py-3 px-4 rounded-lg hover:bg-[#008A5E] transition-colors duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-[#00A676] text-[#FAFAFA] text-sm sm:text-base font-semibold py-2.5 sm:py-3 px-4 rounded-lg hover:bg-[#008A5E] transition-colors duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-[#FAFAFA] border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-[#FAFAFA] border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <span>Sign in</span>
-                <FiArrowRight className="w-4 h-4" />
+                    <span>{isSignUp ? 'Sign up' : 'Sign in'}</span>
+                    <FiArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
               </>
             )}
           </motion.button>
+            </motion.form>
 
-          {/* Sign Up Link */}
-          <div className="text-center">
-            <p className="text-sm text-[#666666]">
-              Don't have an account?{' '}
-              <Link
-                to="/register"
-                className="font-medium text-[#00A676] hover:text-[#008A5E] transition-colors duration-200"
-              >
-                Sign up here
-              </Link>
+            {/* Toggle Sign Up/Sign In Link */}
+            <div className="mt-6 text-center">
+              <p className="text-sm text-[#666666]">
+                {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUp(!isSignUp);
+                    setFormData({ name: '', email: '', password: '' });
+                    setErrors({});
+                  }}
+                  className="font-semibold text-[#00A676] hover:text-[#008A5E] transition-colors duration-200"
+                >
+                  {isSignUp ? 'Sign in' : 'Sign up'}
+                </button>
             </p>
           </div>
-        </motion.form>
+          </div>
+        </div>
+      </div>
       </div>
     </div>
   );
 };
 
 export default Login;
-

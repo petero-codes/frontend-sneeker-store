@@ -25,7 +25,7 @@ try {
       <Toaster
         position="top-right"
         toastOptions={{
-          duration: 4000,
+          duration: 1500,
           style: {
             background: '#1F1F1F',
             color: '#FAFAFA',

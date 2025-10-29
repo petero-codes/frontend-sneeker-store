@@ -29,6 +29,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
@@ -36,6 +37,17 @@ const Navbar = () => {
   const { totalItems } = useSelector(state => state.cart);
 
   console.log('🧭 Navbar state:', { user, isAuthenticated, theme, totalItems });
+
+  // Track scroll position for floating navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      setIsScrolled(scrollPosition > 100); // Trigger after 100px scroll
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -80,8 +92,17 @@ const Navbar = () => {
       
       const reader = new FileReader();
       reader.onload = (e) => {
-        // Here you would typically update the user's avatar in your backend
-        console.log('Profile photo uploaded:', e.target.result);
+        const imageDataUrl = e.target.result;
+        
+        // Store in localStorage
+        localStorage.setItem('userAvatar', imageDataUrl);
+        
+        // Update Redux state (we'll need to update the user slice)
+        dispatch({
+          type: 'user/updateAvatar',
+          payload: imageDataUrl
+        });
+        
         toast.success('Profile photo updated successfully!');
       };
       reader.onerror = () => {
@@ -104,6 +125,21 @@ const Navbar = () => {
     logout();
     navigate('/');
     setIsMenuOpen(false);
+    setIsDropdownOpen(false);
+  };
+
+  const handleEditProfile = () => {
+    navigate('/profile');
+    setIsDropdownOpen(false);
+  };
+
+  const handleWishlist = () => {
+    navigate('/wishlist');
+    setIsDropdownOpen(false);
+  };
+
+  const handleOrderHistory = () => {
+    navigate('/orders');
     setIsDropdownOpen(false);
   };
 
@@ -298,13 +334,21 @@ const Navbar = () => {
   return (
     <>
       {/* Main Navigation */}
-      <nav className="relative bg-seekon-midnight/80 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-seekon-charcoalGray/30">
+      <nav className={`sticky top-0 bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl shadow-2xl z-[9999] border-b border-white/20 dark:border-gray-700/30 transition-all duration-500 ease-in-out ${
+        isScrolled 
+          ? 'my-2 mx-auto w-1/2 rounded-2xl' 
+          : 'w-full rounded-none'
+      }`}>
         {/* Glassmorphism Background Effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-seekon-midnight/90 via-seekon-deepNavy/80 to-seekon-midnight/90"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent"></div>
+        <div className={`absolute inset-0 bg-gradient-to-r from-seekon-midnight/40 via-seekon-deepNavy/30 to-seekon-midnight/40 backdrop-blur-2xl ${
+          isScrolled ? 'rounded-2xl' : ''
+        }`}></div>
+        <div className={`absolute inset-0 bg-gradient-to-b from-white/10 to-transparent ${
+          isScrolled ? 'rounded-2xl' : ''
+        }`}></div>
         
-        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex justify-between items-center h-14 sm:h-16">
+        <div className="relative max-w-7xl mx-auto px-2 sm:px-3 lg:px-4">
+          <div className="flex justify-between items-center h-12 sm:h-14">
 
             {/* Left Side - Home Icon */}
             <div className="flex items-center">
@@ -318,12 +362,12 @@ const Navbar = () => {
             </div>
 
             {/* Center - Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-2">
+            <div className="hidden lg:flex items-center space-x-1">
               {navItems.map((item) => (
-                <div key={item.name} className="relative group">
+                <div key={item.name} className="relative group z-[100000]">
                   <Link
                     to={item.path}
-                    className="flex items-center space-x-2 px-4 py-2 text-seekon-softWhite hover:text-seekon-pureWhite font-medium transition-all duration-300 rounded-lg hover:bg-white/10 hover:backdrop-blur-sm hover:shadow-lg hover:shadow-seekon-electricRed/20"
+                    className="flex items-center space-x-1 px-2 py-1.5 text-seekon-softWhite hover:text-seekon-pureWhite font-medium transition-all duration-300 rounded-lg hover:bg-white/10 hover:backdrop-blur-sm hover:shadow-lg hover:shadow-seekon-electricRed/20 text-xs sm:text-sm"
                   >
                     <span className="relative z-10">{item.name}</span>
                     {item.isNew && (
@@ -336,12 +380,12 @@ const Navbar = () => {
                         SALE
                       </span>
                     )}
-                    {item.dropdown && <FiChevronDown className="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />}
+                    {item.dropdown && <FiChevronDown className="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" />}
                   </Link>
 
                   {/* Dropdown Menu */}
                   {item.dropdown && (
-                    <div className="absolute top-full left-1/2 transform -translate-x-[45%] mt-2 w-[90vw] max-w-[800px] bg-seekon-midnight/95 backdrop-blur-xl shadow-2xl border border-seekon-charcoalGray/30 rounded-xl sm:rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 overflow-hidden">
+                    <div className="absolute top-full left-1/2 transform -translate-x-[45%] mt-2 w-[90vw] max-w-[800px] bg-seekon-midnight/95 backdrop-blur-xl shadow-2xl border border-seekon-charcoalGray/30 rounded-xl sm:rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[99999] overflow-hidden">
                       {/* Clear glassmorphism background */}
                       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/10 to-white/5"></div>
                       <div className="absolute inset-0 bg-gradient-to-t from-seekon-midnight/20 to-transparent"></div>
@@ -370,6 +414,17 @@ const Navbar = () => {
                                     <Link
                                       key={subIndex}
                                       to={subItem.path}
+                                      onClick={() => {
+                                        // Close dropdown on mobile
+                                        setIsMenuOpen(false);
+                                        // Scroll to products section
+                                        setTimeout(() => {
+                                          const productSection = document.getElementById('products-section');
+                                          if (productSection) {
+                                            productSection.scrollIntoView({ behavior: 'smooth' });
+                                          }
+                                        }, 100);
+                                      }}
                                       className="block px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 hover:backdrop-blur-sm rounded transition-all duration-200 group/item truncate"
                                     >
                                       <span className="flex items-center justify-between">
@@ -381,6 +436,17 @@ const Navbar = () => {
                                 ) : (
                                   <Link
                                     to={dropdownItem.path}
+                                    onClick={() => {
+                                      // Close dropdown on mobile
+                                      setIsMenuOpen(false);
+                                      // Scroll to products section
+                                      setTimeout(() => {
+                                        const productSection = document.getElementById('products-section');
+                                        if (productSection) {
+                                          productSection.scrollIntoView({ behavior: 'smooth' });
+                                        }
+                                      }, 100);
+                                    }}
                                     className="block px-2 py-1 text-xs text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 hover:backdrop-blur-sm rounded transition-all duration-200 group/item"
                                   >
                                     <span className="flex items-center justify-between">
@@ -423,25 +489,25 @@ const Navbar = () => {
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex items-center space-x-1 sm:space-x-2">
+            <div className="flex items-center space-x-0.5 sm:space-x-1">
               {/* Search Icon */}
               <button
                 onClick={handleSearch}
-                className="relative p-2 sm:p-3 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
+                className="relative p-1.5 sm:p-2 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-seekon-electricRed/20 to-seekon-neonCyan/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <FiSearch className="relative w-4 h-4 sm:w-5 sm:h-5 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
+                <FiSearch className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
               </button>
 
               {/* Cart */}
               <button
                 onClick={handleCartClick}
-                className="relative p-2 sm:p-3 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
+                className="relative p-1.5 sm:p-2 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-seekon-electricRed/20 to-seekon-neonCyan/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <FiShoppingCart className="relative w-4 h-4 sm:w-5 sm:h-5 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
+                <FiShoppingCart className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-gradient-to-r from-seekon-electricRed to-seekon-electricRed/80 text-seekon-pureWhite text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse shadow-lg shadow-seekon-electricRed/50">
+                  <span className="absolute -top-0.5 -right-0.5 bg-gradient-to-r from-seekon-electricRed to-seekon-electricRed/80 text-seekon-pureWhite text-[8px] rounded-full w-4 h-4 flex items-center justify-center animate-pulse shadow-lg shadow-seekon-electricRed/50">
                     {totalItems}
                   </span>
                 )}
@@ -453,17 +519,17 @@ const Navbar = () => {
                   <div className="relative group user-dropdown">
                     <button
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center space-x-3 px-3 py-2 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300"
+                      className="flex items-center space-x-1.5 px-1.5 py-1 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300"
                     >
-                      <div className="relative">
-                        <img
-                          src={user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}
-                          alt={user?.name}
-                          className="w-8 h-8 rounded-full ring-2 ring-seekon-electricRed/30 group-hover:ring-seekon-electricRed/60 transition-all duration-300"
+                    <div className="relative">
+                      <img
+                        src={user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}
+                        alt={user?.name}
+                          className="w-6 h-6 rounded-full ring-2 ring-seekon-electricRed/30 group-hover:ring-seekon-electricRed/60 transition-all duration-300"
                         />
-                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-gradient-to-r from-seekon-electricRed to-seekon-neonCyan rounded-full border-2 border-seekon-midnight"></div>
+                        <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-gradient-to-r from-seekon-electricRed to-seekon-neonCyan rounded-full border-2 border-seekon-midnight"></div>
                       </div>
-                      <span className="text-sm font-medium text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300">{user?.name}</span>
+                      <span className="text-xs font-medium text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300 hidden sm:inline">{user?.name}</span>
                     </button>
 
                     {/* User Dropdown */}
@@ -474,14 +540,14 @@ const Navbar = () => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 10, scale: 0.95 }}
                           transition={{ duration: 0.2 }}
-                          className="absolute right-0 mt-2 w-72 sm:w-80 md:w-96 bg-seekon-midnight/95 backdrop-blur-xl border border-seekon-charcoalGray/30 rounded-xl sm:rounded-2xl shadow-2xl z-50 overflow-hidden"
+                          className="absolute right-0 mt-2 w-72 sm:w-80 md:w-96 bg-seekon-midnight/95 backdrop-blur-xl border border-seekon-charcoalGray/30 rounded-xl sm:rounded-2xl shadow-2xl z-[99999] overflow-hidden"
                         >
                           {/* User Profile Header */}
                           <div className="p-4 sm:p-6 border-b border-seekon-charcoalGray/30">
                             <div className="flex items-center space-x-3 sm:space-x-4">
                               <div className="relative flex-shrink-0 group">
                                 <img
-                                  src={user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}
+                                  src={user?.avatar || localStorage.getItem('userAvatar') || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}
                                   alt={user?.name}
                                   className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full ring-2 ring-seekon-electricRed/30 object-cover"
                                 />
@@ -508,17 +574,26 @@ const Navbar = () => {
 
                           {/* Menu Options */}
                           <div className="py-1 sm:py-2">
-                            <button className="w-full px-4 sm:px-6 py-2.5 sm:py-3 text-left text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 transition-colors duration-200 flex items-center space-x-2 sm:space-x-3">
+                            <button 
+                              onClick={handleEditProfile}
+                              className="w-full px-4 sm:px-6 py-2.5 sm:py-3 text-left text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 transition-colors duration-200 flex items-center space-x-2 sm:space-x-3"
+                            >
                               <FiEdit3 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                               <span className="text-sm sm:text-base">Edit Profile</span>
                             </button>
                             
-                            <button className="w-full px-4 sm:px-6 py-2.5 sm:py-3 text-left text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 transition-colors duration-200 flex items-center space-x-2 sm:space-x-3">
+                            <button 
+                              onClick={handleWishlist}
+                              className="w-full px-4 sm:px-6 py-2.5 sm:py-3 text-left text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 transition-colors duration-200 flex items-center space-x-2 sm:space-x-3"
+                            >
                               <FiHeart className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                               <span className="text-sm sm:text-base">Wishlist</span>
                             </button>
                             
-                            <button className="w-full px-4 sm:px-6 py-2.5 sm:py-3 text-left text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 transition-colors duration-200 flex items-center space-x-2 sm:space-x-3">
+                            <button 
+                              onClick={handleOrderHistory}
+                              className="w-full px-4 sm:px-6 py-2.5 sm:py-3 text-left text-seekon-softWhite hover:text-seekon-pureWhite hover:bg-white/10 transition-colors duration-200 flex items-center space-x-2 sm:space-x-3"
+                            >
                               <FiShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                               <span className="text-sm sm:text-base">Order History</span>
                             </button>
@@ -532,7 +607,7 @@ const Navbar = () => {
                               <FiLogOut className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                               <span className="text-sm sm:text-base">Logout</span>
                             </button>
-                          </div>
+                    </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -540,7 +615,7 @@ const Navbar = () => {
                 ) : (
                   <Link
                     to="/login"
-                    className="px-4 py-2 text-seekon-softWhite hover:text-seekon-pureWhite font-medium transition-all duration-300 rounded-xl hover:bg-white/10 hover:backdrop-blur-sm hover:shadow-lg hover:shadow-seekon-electricRed/20"
+                    className="px-2 py-1 text-xs sm:text-sm text-seekon-softWhite hover:text-seekon-pureWhite font-medium transition-all duration-300 rounded-lg hover:bg-white/10 hover:backdrop-blur-sm hover:shadow-lg hover:shadow-seekon-electricRed/20"
                   >
                     Login
                   </Link>
@@ -616,6 +691,31 @@ const Navbar = () => {
                       <FiSearch className="w-5 h-5" />
                       <span>Search Products</span>
                     </button>
+                  </div>
+
+                  {/* About, Careers, Press Links */}
+                  <div className="px-4 space-y-2">
+                    <Link
+                      to="/about"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block w-full px-4 py-2.5 bg-white/5 backdrop-blur-md hover:bg-white/10 border border-white/10 hover:border-white/20 text-white transition-all duration-200 rounded-lg font-medium text-sm"
+                    >
+                      About
+                    </Link>
+                    <Link
+                      to="/careers"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block w-full px-4 py-2.5 bg-white/5 backdrop-blur-md hover:bg-white/10 border border-white/10 hover:border-white/20 text-white transition-all duration-200 rounded-lg font-medium text-sm"
+                    >
+                      Careers
+                    </Link>
+                    <Link
+                      to="/press"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block w-full px-4 py-2.5 bg-white/5 backdrop-blur-md hover:bg-white/10 border border-white/10 hover:border-white/20 text-white transition-all duration-200 rounded-lg font-medium text-sm"
+                    >
+                      Press
+                    </Link>
                   </div>
 
                   {/* Mobile Navigation Links */}

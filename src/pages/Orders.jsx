@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiPackage, FiTruck, FiCheckCircle, FiClock, FiEye } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
@@ -9,7 +10,6 @@ const Orders = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -184,19 +184,15 @@ const Orders = () => {
                       Total: {formatPrice(order.total)}
                     </p>
                   </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => setSelectedOrder(order)}
-                      className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <Link
+                      to={`/orders/${order.id}`}
+                      className="flex items-center justify-center space-x-2 px-4 py-2 sm:px-3 sm:py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200 w-full sm:w-auto"
                     >
-                      <FiEye className="w-4 h-4" />
-                      <span>View Details</span>
-                    </button>
-                    {order.status === 'delivered' && (
-                      <button className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors duration-200">
-                        Reorder
-                      </button>
-                    )}
+                      <FiEye className="w-4 h-4 flex-shrink-0" />
+                      <span className="hidden sm:inline">View Details</span>
+                      <span className="sm:hidden">Details</span>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -204,84 +200,6 @@ const Orders = () => {
           ))}
         </motion.div>
       </div>
-
-      {/* Order Details Modal */}
-      {selectedOrder && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Order Details
-              </h3>
-              <button
-                onClick={() => setSelectedOrder(null)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="space-y-6">
-              {/* Order Status */}
-              <div className="flex items-center space-x-3">
-                {getStatusIcon(selectedOrder.status)}
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedOrder.status)}`}>
-                  {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
-                </span>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Order #{selectedOrder.id}
-                </span>
-              </div>
-
-              {/* Order Items */}
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">
-                  Items Ordered
-                </h4>
-                <div className="space-y-3">
-                  {selectedOrder.items.map((item, index) => (
-                    <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <div className="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center">
-                        <FiPackage className="w-6 h-6 text-gray-400" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-gray-100">
-                          {item.name}
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Quantity: {item.quantity}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-gray-900 dark:text-gray-100">
-                          {formatPrice(item.price)}
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Total: {formatPrice(item.price * item.quantity)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Order Total */}
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <div className="flex justify-between text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  <span>Total</span>
-                  <span>{formatPrice(selectedOrder.total)}</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
     </div>
   );
 };

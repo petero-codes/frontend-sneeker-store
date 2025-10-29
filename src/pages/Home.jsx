@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
+import { useLocation, Link } from 'react-router-dom';
+import { FiArrowLeft } from 'react-icons/fi';
 import { fetchProducts } from '../store/slices/productSlice';
 import HeroBanner from '../components/HeroBanner';
 import ProductCard from '../components/ProductCard';
@@ -13,8 +15,10 @@ const Home = () => {
   console.log('🏠 Home component rendering...');
   
   const dispatch = useDispatch();
+  const location = useLocation();
   const { products, isLoading, error } = useSelector(state => state.products);
   const [email, setEmail] = useState('');
+  const isAdminView = new URLSearchParams(location.search).get('admin') === 'true';
 
   console.log('📦 Products state:', { products: products?.length, isLoading, error });
 
@@ -23,13 +27,28 @@ const Home = () => {
     dispatch(fetchProducts())
       .unwrap()
       .then(() => {
-        toast.success('Products loaded successfully!');
+        // Only show toast on initial load, not on updates
+        if (products.length === 0) {
+          toast.success('Products loaded successfully!');
+        }
       })
       .catch((error) => {
         console.error('Error fetching products:', error);
         toast.error('Failed to load products. Please try again.');
       });
-  }, [dispatch]);
+    
+    // Listen for product updates from admin
+    const handleProductsUpdated = () => {
+      console.log('📢 Products updated event received, refreshing...');
+      dispatch(fetchProducts());
+    };
+    
+    window.addEventListener('productsUpdated', handleProductsUpdated);
+    
+    return () => {
+      window.removeEventListener('productsUpdated', handleProductsUpdated);
+    };
+  }, [dispatch, products.length]);
 
   const handleNewsletterSubscribe = (e) => {
     e.preventDefault();
@@ -62,8 +81,8 @@ const Home = () => {
   }
 
   // Get different product categories for sections
-  const trendingProducts = products.filter(product => product.isTrending).slice(0, 8);
-  const newProducts = products.filter(product => product.isNew).slice(0, 6);
+  const trendingProducts = products.filter(product => product.isFeatured).slice(0, 8);
+  const newProducts = products.filter(product => product.newProduct).slice(0, 6);
   const saleProducts = products.filter(product => product.discount > 0).slice(0, 6);
   const sneakers = products.filter(product => product.category === 'sneakers').slice(0, 4);
   const apparel = products.filter(product => product.category === 'apparel').slice(0, 4);
@@ -85,6 +104,23 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-seekon-platinumSilver">
+      {/* Admin Mode Banner */}
+      {isAdminView && (
+        <div className="bg-gradient-to-r from-[#00A676] to-[#008A5E] text-white p-3 flex items-center justify-between shadow-lg sticky top-0 z-50">
+          <div className="flex items-center space-x-3">
+            <FiArrowLeft className="w-5 h-5" />
+            <span className="font-semibold">Admin Shop View Mode</span>
+            <span className="text-xs bg-white/20 px-2 py-1 rounded">You're viewing as admin</span>
+          </div>
+          <Link 
+            to="/admin/dashboard"
+            className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors font-medium"
+          >
+            Back to Admin Dashboard
+          </Link>
+        </div>
+      )}
+
       {/* Promotional Banner */}
       <PromotionalBanner 
         message="Seekon Apparel — Live bold. Dress sharper. Walk your story. • NEW ARRIVALS: LIMITED TIME OFFER - UPTO 30% OFF ON SELECTED ITEMS!"

@@ -28,8 +28,8 @@ const Footer = () => {
       />
       
       <footer className="bg-seekon-deepNavy text-seekon-platinumSilver">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row justify-between gap-8 sm:gap-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="flex flex-col lg:flex-row justify-between gap-4 sm:gap-6">
           
           {/* Brand Column */}
           <div className="flex-1 max-w-xs">
@@ -196,14 +196,13 @@ const Footer = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
               viewport={{ once: true }}
             >
-              <h3 className="text-seekon-pureWhite font-bold text-lg mb-4">Company</h3>
+              <h3 className="text-seekon-pureWhite font-bold text-lg mb-4">Support</h3>
               <ul className="space-y-3">
                 {[
                   { name: 'About Us', path: '/about' },
-                  { name: 'Careers', path: '/careers' },
-                  { name: 'Press', path: '/press' },
-                  { name: 'Sustainability', path: '/sustainability' },
-                  { name: 'Investor Relations', path: '/investors' }
+                  { name: 'Contact', path: '/contact' },
+                  { name: 'Returns', path: '/returns' },
+                  { name: 'Shipping', path: '/shipping' }
                 ].map((item) => (
                   <li key={item.name}>
                     <Link
@@ -275,10 +274,10 @@ const Footer = () => {
 
             {/* Copyright */}
             <div className="text-center md:text-right">
-              <p className="text-seekon-platinumSilver text-xs">
+              <p className="text-seekon-platinumSilver text-[10px] sm:text-xs">
                 © 2025 Seekon Apparel. All rights reserved.
               </p>
-              <div className="flex space-x-2 mt-1 text-xs text-seekon-platinumSilver">
+              <div className="flex space-x-2 mt-0.5 text-[10px] sm:text-xs text-seekon-platinumSilver">
                 <Link
                   to="/privacy"
                   onClick={() => handleLinkClick('/privacy')}

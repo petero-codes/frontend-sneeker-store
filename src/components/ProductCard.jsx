@@ -1,32 +1,102 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiShoppingCart, FiHeart, FiEye } from 'react-icons/fi';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../store/slices/cartSlice';
+import { addToWishlistLocal, removeFromWishlistLocal } from '../store/slices/wishlistSlice';
+import { useAuth } from '../context/AuthContext';
 import { formatPrice, calculateDiscount } from '../utils/formatPrice';
 import toast from 'react-hot-toast';
 
 const ProductCard = ({ product, viewMode = 'grid' }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  
+  // Get Redux state at component level (hooks must be at top level)
+  const wishlist = useSelector(state => state.wishlist.items);
+  const user = useSelector(state => state.user.user);
+  const cart = useSelector(state => state.cart.items);
+  
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || 'black');
 
-  const handleAddToCart = (e) => {
+  // Check if product is in wishlist
+  useEffect(() => {
+    const inWishlist = wishlist.some(item => item.id === product.id);
+    setIsWishlisted(inWishlist);
+  }, [wishlist, product.id]);
+
+  const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Check authentication FIRST - redirect to login if not authenticated
+    if (!isAuthenticated) {
+      // Store redirect path for after login
+      const currentPath = window.location.pathname;
+      localStorage.setItem('redirectAfterLogin', currentPath);
+      
+      // Store product in sessionStorage for pending action with selected color
+      const pendingItem = {
+        product: {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          brand: product.brand
+        },
+        color: selectedColor, // Save the selected color
+        size: null,
+        quantity: 1
+      };
+      sessionStorage.setItem('pendingCartItem', JSON.stringify(pendingItem));
+      
+      toast.info('Please login to add items to your cart', {
+        icon: '🔐',
+        duration: 2500,
+      });
+      
+      // Navigate to login immediately
+      navigate('/login');
+      return;
+    }
+    
+    try {
+      // Check if item already exists in cart
+      const existingItem = cart.find(
+        item => item.id === product.id && item.color === selectedColor && (item.size === null || item.size === undefined)
+      );
+      
+      // Use local Redux store with fallback
     dispatch(addToCart({
+        product: {
       id: product.id,
       name: product.name,
       price: product.price,
       image: product.image,
-      brand: product.brand,
+          brand: product.brand
+        },
+        size: null,
+        color: selectedColor,
       quantity: 1
     }));
-    toast.success(`${product.name} added to cart!`, {
-      icon: '🛒',
-      duration: 3000,
-    });
+      
+      // Show toast
+      if (existingItem) {
+        toast.success(`${product.name} (${selectedColor}) - quantity updated! (${existingItem.quantity + 1})`, {
+          icon: '🛒',
+        });
+      } else {
+        toast.success(`${product.name} (${selectedColor}) added to cart!`, {
+          icon: '🛒',
+        });
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Failed to add item to cart. Please try again.');
+    }
   };
 
   const handleQuickView = (e) => {
@@ -39,19 +109,77 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (isWishlisted) {
-      setIsWishlisted(false);
-      toast.success(`${product.name} removed from wishlist!`, {
-        icon: '💔',
-        duration: 3000,
+    // Check authentication FIRST - redirect to login if not authenticated
+    if (!isAuthenticated) {
+      // Store redirect path for after login
+      const currentPath = window.location.pathname;
+      localStorage.setItem('redirectAfterLogin', currentPath);
+      
+      // Store product in sessionStorage for pending action
+      sessionStorage.setItem('pendingWishlistItem', JSON.stringify(product));
+      
+      toast.info('Please login to add items to your wishlist', {
+        icon: '🔐',
+        duration: 2500,
       });
-    } else {
-      setIsWishlisted(true);
-      toast.success(`${product.name} added to wishlist!`, {
-        icon: '❤️',
-        duration: 3000,
-      });
+      
+      // Navigate to login immediately
+      navigate('/login');
+      return;
     }
+    
+    try {
+      if (isWishlisted) {
+        // Remove from wishlist (instant local Redux with fallback)
+        dispatch(removeFromWishlistLocal({ productId: product.id }));
+        setIsWishlisted(false);
+        toast.success(`${product.name} removed from wishlist!`, {
+          icon: '💔',
+        });
+      } else {
+        // Add to wishlist (instant local Redux with fallback)
+        dispatch(addToWishlistLocal({ product }));
+        setIsWishlisted(true);
+        toast.success(`${product.name} added to wishlist!`, {
+          icon: '❤️',
+        });
+      }
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
+      toast.error('Failed to add item to wishlist. Please try again.');
+    }
+  };
+
+  const handleColorSelect = (e, color) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedColor(color);
+  };
+
+  // Get color hue for CSS filter
+  const getColorHue = (color) => {
+    const hueMap = {
+      'black': 0,
+      'white': 0,
+      'red': 0,
+      'blue': 220,
+      'gray': 0,
+      'grey': 0,
+      'brown': 30,
+      'green': 120,
+      'yellow': 60,
+      'orange': 30,
+      'purple': 270,
+      'pink': 330,
+      'navy': 220,
+      'maroon': 0,
+      'teal': 180,
+      'cyan': 180,
+      'gold': 45,
+      'silver': 0,
+      'charcoal': 0
+    };
+    return hueMap[color.toLowerCase()] || 0;
   };
 
   // Enhanced color mapping with variety
@@ -196,7 +324,6 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
         whileHover={{ y: -2 }}
         className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
       >
-        <Link to={`/product/${product.id}`} className="block">
           <div className="flex">
             {/* Image */}
             <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 flex-shrink-0">
@@ -261,13 +388,19 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
                 <div className="flex items-center space-x-2">
                   <span className="text-xs text-gray-500 dark:text-gray-400">Colors:</span>
                   <div className="flex space-x-1">
-                    {product.colors.slice(0, 3).map((color, index) => (
-                      <div
-                        key={index}
-                        className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-600"
+                  {product.colors.slice(0, 3).map((color) => (
+                    <button
+                      key={color}
+                      onClick={(e) => handleColorSelect(e, color)}
+                      className={`rounded-full border-2 transition-all duration-200 cursor-pointer hover:scale-110 ${
+                        selectedColor === color
+                          ? 'w-5 h-5 border-gray-900 dark:border-white shadow-md' 
+                          : 'w-3 h-3 border-gray-300 dark:border-gray-600'
+                      }`}
                         style={{
                           backgroundColor: getColorValue(color)
                         }}
+                      aria-label={`Select ${color} color`}
                       />
                     ))}
                     {product.colors.length > 3 && (
@@ -281,7 +414,7 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
                 {/* Add to Cart Button */}
                 <button
                   onClick={handleAddToCart}
-                  className="bg-gradient-to-r from-seekon-electricRed/90 to-seekon-electricRed/80 hover:from-seekon-electricRed hover:to-seekon-electricRed/90 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 backdrop-blur-sm border border-white/20 shadow-md"
+                  className="bg-[#00A676] hover:bg-[#008A5E] text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 shadow-md"
                 >
                   Add to Cart
                 </button>
@@ -290,7 +423,7 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
               {/* Price */}
               <div className="mt-2">
                 <div className="flex items-center space-x-2">
-                  <span className="font-bold text-seekon-electricRed text-sm sm:text-base">
+                  <span className="font-bold text-[#00A676] text-sm sm:text-base">
                     {formatPrice(product.price)}
                   </span>
                   {product.originalPrice && product.originalPrice > product.price && (
@@ -302,7 +435,6 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
               </div>
             </div>
           </div>
-        </Link>
       </motion.div>
     );
   }
@@ -320,6 +452,9 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
             src={product.image}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            style={{
+              filter: selectedColor !== product.colors[0] ? `brightness(0.7) sepia(100%) hue-rotate(${getColorHue(selectedColor)}deg) saturate(200%)` : 'none'
+            }}
           />
           
           {/* Badges */}
@@ -362,7 +497,7 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
           <div className="absolute bottom-2 left-2 right-2 sm:bottom-3 sm:left-3 sm:right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
             <button
               onClick={handleAddToCart}
-              className="w-full bg-gradient-to-r from-seekon-electricRed/90 to-seekon-electricRed/80 hover:from-seekon-electricRed hover:to-seekon-electricRed/90 text-white py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-all duration-200 backdrop-blur-sm border border-white/20 shadow-lg"
+              className="w-full bg-[#00A676] hover:bg-[#008A5E] text-white py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-all duration-200 shadow-lg"
             >
               Add to Cart
             </button>
@@ -377,13 +512,13 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
           </p>
           
           {/* Name */}
-          <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-2 line-clamp-2">
+          <h3 className="font-bold text-gray-900 dark:text-white text-base sm:text-lg mb-2 line-clamp-2">
             {product.name}
           </h3>
           
           {/* Price */}
           <div className="flex items-center space-x-2 mb-3">
-            <span className="font-bold text-seekon-electricRed text-lg">
+            <span className="font-bold text-[#00A676] text-lg">
               {formatPrice(product.price)}
             </span>
             {product.originalPrice && product.originalPrice > product.price && (
@@ -397,17 +532,19 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-500 dark:text-gray-400">Colors:</span>
             <div className="flex space-x-2">
-              {product.colors.slice(0, 3).map((color, index) => (
-                <div
-                  key={index}
-                  className={`w-4 h-4 rounded-full border-2 transition-all duration-200 ${
-                    index === 0 
-                      ? 'border-gray-400 scale-110' 
+              {product.colors.slice(0, 3).map((color) => (
+                <button
+                  key={color}
+                  onClick={(e) => handleColorSelect(e, color)}
+                  className={`w-4 h-4 rounded-full border-2 transition-all duration-200 cursor-pointer hover:scale-125 ${
+                    selectedColor === color
+                      ? 'border-gray-600 dark:border-gray-300 scale-125' 
                       : 'border-gray-300 dark:border-gray-600'
                   }`}
                   style={{
                     backgroundColor: getColorValue(color)
                   }}
+                  aria-label={`Select ${color} color`}
                 />
               ))}
               {product.colors.length > 3 && (

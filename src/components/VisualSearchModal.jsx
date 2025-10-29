@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FiUpload, FiImage, FiX, FiSearch } from 'react-icons/fi';
 
 const VisualSearchModal = ({ isOpen, onClose, onSearch }) => {
@@ -76,16 +76,23 @@ const VisualSearchModal = ({ isOpen, onClose, onSearch }) => {
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-seekon-midnight/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.8 }}
-        className="bg-seekon-midnight/95 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-sm sm:max-w-lg w-full border border-white/20 shadow-2xl"
-      >
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-seekon-midnight/90 backdrop-blur-md z-[9999] flex items-center justify-center p-3 sm:p-4"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="bg-seekon-midnight/95 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-sm sm:max-w-lg w-full border border-white/20 shadow-2xl relative"
+            onClick={(e) => e.stopPropagation()}
+          >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-r from-seekon-electricRed to-seekon-neonCyan rounded-full flex items-center justify-center">
@@ -181,7 +188,9 @@ const VisualSearchModal = ({ isOpen, onClose, onSearch }) => {
           )}
         </div>
       </motion.div>
-    </div>
+      </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
