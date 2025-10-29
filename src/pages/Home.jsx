@@ -135,7 +135,7 @@ const Home = () => {
       <HeroBanner />
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8 lg:py-12 bg-seekon-platinumSilver">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 lg:py-12 bg-seekon-platinumSilver">
         {/* Trending Now Section */}
         <motion.section
           initial="hidden"
@@ -173,7 +173,7 @@ const Home = () => {
           ) : (
             <motion.div
               variants={containerVariants}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4 md:gap-6"
             >
               {trendingProducts.map((product) => (
                 <motion.div key={product.id} variants={itemVariants}>
@@ -257,7 +257,7 @@ const Home = () => {
 
           <motion.div
             variants={containerVariants}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6"
           >
             {newProducts.map((product) => (
               <motion.div key={product.id} variants={itemVariants}>
@@ -291,7 +291,7 @@ const Home = () => {
 
           <motion.div
             variants={containerVariants}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6"
           >
             {saleProducts.map((product) => (
               <motion.div key={product.id} variants={itemVariants}>

@@ -75,6 +75,15 @@ const CartDrawer = () => {
   };
 
   const handleClearCart = async () => {
+    if (items.length === 0) {
+      toast.error('Your cart is already empty!');
+      return;
+    }
+    
+    if (!window.confirm(`Are you sure you want to clear all ${items.length} item(s) from your cart?`)) {
+      return;
+    }
+    
     try {
       // If user is logged in, use API
       if (user && user.id) {
@@ -175,33 +184,41 @@ const CartDrawer = () => {
                         </p>
                       </div>
 
-                      {/* Quantity Controls */}
-                      <div className="flex items-center space-x-2">
-                        <button
+                      {/* Modern Quantity Controls */}
+                      <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
                           onClick={() => handleQuantityChange(item, item.quantity - 1)}
-                          className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center justify-center transition-colors"
+                          disabled={item.quantity <= 1}
+                          className="w-7 h-7 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors shadow-sm"
                         >
-                          <FiMinus className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                        </button>
-                        <span className="w-8 text-center text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <FiMinus className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+                        </motion.button>
+                        <span className="w-8 text-center text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100">
                           {item.quantity}
                         </span>
-                        <button
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
                           onClick={() => handleQuantityChange(item, item.quantity + 1)}
-                          disabled={item.quantity >= item.maxQuantity}
-                          className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                          disabled={item.quantity >= 10}
+                          className="w-7 h-7 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors shadow-sm"
                         >
-                          <FiPlus className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                        </button>
+                          <FiPlus className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+                        </motion.button>
                       </div>
 
-                      {/* Remove Button */}
-                      <button
+                      {/* Remove Button - Modern Style */}
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => handleRemoveItem(item)}
-                        className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors group"
+                        title="Remove item"
                       >
-                        <FiTrash2 className="w-4 h-4 text-red-500" />
-                      </button>
+                        <FiTrash2 className="w-4 h-4 text-red-500 group-hover:text-red-600" />
+                      </motion.button>
                     </motion.div>
                   ))}
                 </div>
@@ -233,9 +250,10 @@ const CartDrawer = () => {
                   
                   <button
                     onClick={handleClearCart}
-                    className="w-full py-2.5 sm:py-3 text-sm sm:text-base bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]"
+                    className="w-full py-2.5 sm:py-3 text-sm sm:text-base bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98] flex items-center justify-center space-x-2"
                   >
-                    Clear Cart
+                    <FiTrash2 className="w-4 h-4" />
+                    <span>Clear Cart</span>
                   </button>
                   
                   <Link

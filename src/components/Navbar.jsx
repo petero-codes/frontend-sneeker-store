@@ -336,7 +336,7 @@ const Navbar = () => {
       {/* Main Navigation */}
       <nav className={`sticky top-0 bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl shadow-2xl z-[9999] border-b border-white/20 dark:border-gray-700/30 transition-all duration-500 ease-in-out ${
         isScrolled 
-          ? 'my-2 mx-auto w-1/2 rounded-2xl' 
+          ? 'my-2 mx-auto w-full md:w-4/5 lg:w-3/4 xl:w-1/2 rounded-2xl' 
           : 'w-full rounded-none'
       }`}>
         {/* Glassmorphism Background Effect */}
@@ -347,8 +347,8 @@ const Navbar = () => {
           isScrolled ? 'rounded-2xl' : ''
         }`}></div>
         
-        <div className="relative max-w-7xl mx-auto px-2 sm:px-3 lg:px-4">
-          <div className="flex justify-between items-center h-12 sm:h-14">
+        <div className="relative max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6">
+          <div className="flex justify-between items-center h-12 sm:h-14 md:h-16">
 
             {/* Left Side - Home Icon */}
             <div className="flex items-center">
@@ -361,13 +361,13 @@ const Navbar = () => {
               </Link>
             </div>
 
-            {/* Center - Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-1">
+            {/* Center - Navigation (Visible on All Screens) */}
+            <div className="flex items-center space-x-0.5 sm:space-x-1 md:space-x-2 overflow-x-auto scrollbar-hide">
               {navItems.map((item) => (
                 <div key={item.name} className="relative group z-[100000]">
                   <Link
                     to={item.path}
-                    className="flex items-center space-x-1 px-2 py-1.5 text-seekon-softWhite hover:text-seekon-pureWhite font-medium transition-all duration-300 rounded-lg hover:bg-white/10 hover:backdrop-blur-sm hover:shadow-lg hover:shadow-seekon-electricRed/20 text-xs sm:text-sm"
+                    className="flex items-center space-x-0.5 sm:space-x-1 px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 text-seekon-softWhite hover:text-seekon-pureWhite font-medium transition-all duration-300 rounded-lg hover:bg-white/10 hover:backdrop-blur-sm hover:shadow-lg hover:shadow-seekon-electricRed/20 text-[10px] sm:text-xs md:text-sm lg:text-base whitespace-nowrap"
                   >
                     <span className="relative z-10">{item.name}</span>
                     {item.isNew && (
@@ -385,7 +385,7 @@ const Navbar = () => {
 
                   {/* Dropdown Menu */}
                   {item.dropdown && (
-                    <div className="absolute top-full left-1/2 transform -translate-x-[45%] mt-2 w-[90vw] max-w-[800px] bg-seekon-midnight/95 backdrop-blur-xl shadow-2xl border border-seekon-charcoalGray/30 rounded-xl sm:rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[99999] overflow-hidden">
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 md:-translate-x-[45%] mt-2 w-[98vw] sm:w-[95vw] md:w-[90vw] max-w-[800px] bg-seekon-midnight/95 backdrop-blur-xl shadow-2xl border border-seekon-charcoalGray/30 rounded-xl sm:rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[99999] overflow-hidden">
                       {/* Clear glassmorphism background */}
                       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/10 to-white/5"></div>
                       <div className="absolute inset-0 bg-gradient-to-t from-seekon-midnight/20 to-transparent"></div>
@@ -398,7 +398,7 @@ const Navbar = () => {
                         </div>
 
                         {/* Compact Horizontal Layout */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                           {item.dropdown.map((dropdownItem, index) => (
                             <div key={index} className="space-y-2">
                               {/* Group Header */}
@@ -489,23 +489,23 @@ const Navbar = () => {
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex items-center space-x-0.5 sm:space-x-1">
+            <div className="flex items-center space-x-0.5 sm:space-x-1 md:space-x-2">
               {/* Search Icon */}
               <button
                 onClick={handleSearch}
-                className="relative p-1.5 sm:p-2 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
+                className="relative p-1.5 sm:p-2 md:p-2.5 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-seekon-electricRed/20 to-seekon-neonCyan/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <FiSearch className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
+                <FiSearch className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
               </button>
 
               {/* Cart */}
               <button
                 onClick={handleCartClick}
-                className="relative p-1.5 sm:p-2 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
+                className="relative p-1.5 sm:p-2 md:p-2.5 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-seekon-electricRed/20 to-seekon-neonCyan/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <FiShoppingCart className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
+                <FiShoppingCart className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
                 {totalItems > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 bg-gradient-to-r from-seekon-electricRed to-seekon-electricRed/80 text-seekon-pureWhite text-[8px] rounded-full w-4 h-4 flex items-center justify-center animate-pulse shadow-lg shadow-seekon-electricRed/50">
                     {totalItems}
@@ -529,7 +529,7 @@ const Navbar = () => {
                         />
                         <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-gradient-to-r from-seekon-electricRed to-seekon-neonCyan rounded-full border-2 border-seekon-midnight"></div>
                       </div>
-                      <span className="text-xs font-medium text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300 hidden sm:inline">{user?.name}</span>
+                      <span className="text-xs sm:text-sm md:text-base font-medium text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300 hidden sm:inline truncate max-w-[80px] md:max-w-[120px]">{user?.name}</span>
                     </button>
 
                     {/* User Dropdown */}
@@ -622,29 +622,17 @@ const Navbar = () => {
                 )}
               </div>
 
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="lg:hidden p-3 hover:bg-white/10 hover:backdrop-blur-sm rounded-xl transition-all duration-300 group"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-seekon-electricRed/20 to-seekon-neonCyan/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                {isMenuOpen ? (
-                  <FiX className="relative w-5 h-5 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
-                ) : (
-                  <FiMenu className="relative w-5 h-5 text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300" />
-                )}
-              </button>
             </div>
           </div>
 
-          {/* Mobile Menu */}
+          {/* Additional Menu (Optional - can be removed) */}
           <AnimatePresence>
-            {isMenuOpen && (
+            {isMenuOpen && false && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="lg:hidden border-t border-seekon-charcoalGray/30 bg-seekon-midnight/95 backdrop-blur-md"
+                className="hidden border-t border-seekon-charcoalGray/30 bg-seekon-midnight/95 backdrop-blur-md"
               >
                 <div className="py-3 sm:py-4 space-y-3 sm:space-y-4">
                   {/* Mobile User Profile */}

@@ -157,7 +157,7 @@ const AllApparel = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-4">
           {/* Type Filters */}
           <div className="space-y-2">
             <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Type</h3>
@@ -237,7 +237,7 @@ const AllApparel = () => {
 
       <div className="container mx-auto px-4 py-8">
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4 md:gap-6">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="animate-pulse">
                 <div className="bg-gray-200 dark:bg-gray-700 h-64 rounded-lg mb-4"></div>
