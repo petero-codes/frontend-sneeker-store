@@ -41,9 +41,17 @@ const AdminSidebar = () => {
   ];
 
   const handleLogout = () => {
+    // Preserve userAvatar before clearing
+    const userAvatar = localStorage.getItem('userAvatar');
+    
     // Clear all authentication data
     localStorage.clear();
     sessionStorage.clear();
+    
+    // Restore userAvatar for next login
+    if (userAvatar) {
+      localStorage.setItem('userAvatar', userAvatar);
+    }
     
     toast.success('Logged out successfully');
     

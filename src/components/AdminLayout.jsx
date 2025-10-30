@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { FiBell, FiSearch, FiUser, FiShoppingBag, FiUsers, FiPackage, FiAlertCircle } from 'react-icons/fi';
 import AdminSidebar from './AdminSidebar';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,6 +17,7 @@ const mockNotifications = [
 
 const AdminLayout = ({ children }) => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [notifications, setNotifications] = useState(mockNotifications);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -185,12 +187,24 @@ const AdminLayout = ({ children }) => {
                 onClick={() => setShowProfile(!showProfile)}
                 className="flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-1.5 sm:py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00A676] to-[#008A5E] flex items-center justify-center flex-shrink-0">
-                  <FiUser className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00A676] to-[#008A5E] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {user?.avatar || localStorage.getItem('userAvatar') ? (
+                    <img
+                      src={user?.avatar || localStorage.getItem('userAvatar')}
+                      alt={user?.name || 'Admin'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <FiUser className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  )}
                 </div>
                 <div className="hidden lg:block text-left">
-                  <p className="text-sm font-medium text-white">Admin</p>
-                  <p className="text-xs text-gray-400">Administrator</p>
+                  <p className="text-sm font-medium text-white truncate max-w-[120px]">
+                    {user?.name || user?.email?.split('@')[0] || 'Admin'}
+                  </p>
+                  <p className="text-xs text-gray-400 capitalize truncate max-w-[120px]">
+                    {user?.role || 'Administrator'}
+                  </p>
                 </div>
               </button>
 
@@ -219,12 +233,29 @@ const AdminLayout = ({ children }) => {
                     >
                       <div className="p-4 border-b border-white/10">
                         <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00A676] to-[#008A5E] flex items-center justify-center">
-                            <FiUser className="w-6 h-6 text-white" />
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00A676] to-[#008A5E] flex items-center justify-center overflow-hidden">
+                            {user?.avatar || localStorage.getItem('userAvatar') ? (
+                              <img
+                                src={user?.avatar || localStorage.getItem('userAvatar')}
+                                alt={user?.name || 'Admin'}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <FiUser className="w-6 h-6 text-white" />
+                            )}
                           </div>
-                          <div>
-                            <p className="text-sm font-medium text-white">Admin User</p>
-                            <p className="text-xs text-gray-400">admin@seekon.com</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">
+                              {user?.name || user?.email?.split('@')[0] || 'Admin'}
+                            </p>
+                            <p className="text-xs text-gray-400 truncate">
+                              {user?.email || 'No email'}
+                            </p>
+                            {user?.role && (
+                              <p className="text-[10px] text-[#00A676] mt-1 capitalize">
+                                {user.role}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -248,16 +279,24 @@ const AdminLayout = ({ children }) => {
                           Settings
                         </button>
                         <button 
-                          onClick={() => {
-                            // Clear all authentication data
-                            localStorage.clear();
-                            sessionStorage.clear();
-                            
-                            toast.success('Logged out successfully');
-                            
-                            // Force navigation to homepage
-                            window.location.href = '/';
-                          }}
+                                onClick={() => {
+                                  // Preserve userAvatar before clearing
+                                  const userAvatar = localStorage.getItem('userAvatar');
+                                  
+                                  // Clear all authentication data
+                                  localStorage.clear();
+                                  sessionStorage.clear();
+                                  
+                                  // Restore userAvatar for next login
+                                  if (userAvatar) {
+                                    localStorage.setItem('userAvatar', userAvatar);
+                                  }
+
+                                  toast.success('Logged out successfully');
+
+                                  // Force navigation to homepage
+                                  window.location.href = '/';
+                                }}
                           className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                         >
                           Logout

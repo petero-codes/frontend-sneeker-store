@@ -27,6 +27,44 @@ export const register = async (req, res) => {
       });
     }
 
+    // Production-ready password validation
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters'
+      });
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must contain at least one uppercase letter'
+      });
+    }
+
+    if (!/[a-z]/.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must contain at least one lowercase letter'
+      });
+    }
+
+    if (!/[0-9]/.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must contain at least one number'
+      });
+    }
+
+    // Email validation
+    const emailRegex = /\S+@\S+\.\S+/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format'
+      });
+    }
+
     // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -54,7 +92,11 @@ export const register = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        profilePhoto: user.profilePhoto || '',
+        phoneNumber: user.phoneNumber || '',
+        address: user.address || '',
+        createdAt: user.createdAt
       }
     });
   } catch (error) {
@@ -111,7 +153,11 @@ export const login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        profilePhoto: user.profilePhoto || '',
+        phoneNumber: user.phoneNumber || '',
+        address: user.address || '',
+        createdAt: user.createdAt
       }
     });
   } catch (error) {
@@ -210,12 +256,93 @@ export const getMe = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      user
+      user: {
+        id: user._id,
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phoneNumber: user.phoneNumber || '',
+        address: user.address || '',
+        profilePhoto: user.profilePhoto || ''
+      }
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: error.message
+    });
+  }
+};
+
+/**
+ * @route   PUT /api/auth/me
+ * @desc    Update current user profile
+ * @access  Private
+ */
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, email, phoneNumber, address, profilePhoto } = req.body;
+    const userId = req.user.userId;
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Validate email if provided
+    if (email && email !== user.email) {
+      const emailRegex = /\S+@\S+\.\S+/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid email format'
+        });
+      }
+
+      // Check if email is already taken by another user
+      const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already in use'
+        });
+      }
+    }
+
+    // Update user fields
+    if (name) user.name = name.trim();
+    if (email) user.email = email.toLowerCase().trim();
+    if (phoneNumber !== undefined) user.phoneNumber = phoneNumber.trim();
+    if (address !== undefined) user.address = address.trim();
+    if (profilePhoto !== undefined) user.profilePhoto = profilePhoto;
+
+    // Save updated user
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: {
+        id: user._id,
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phoneNumber: user.phoneNumber || '',
+        address: user.address || '',
+        profilePhoto: user.profilePhoto || ''
+      }
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to update profile'
     });
   }
 };

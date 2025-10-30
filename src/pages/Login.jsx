@@ -16,8 +16,11 @@ const Login = () => {
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(null);
   const [errors, setErrors] = useState({});
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -68,6 +71,14 @@ const Login = () => {
       [name]: value
     }));
     
+    // Real-time password strength check for signup
+    if (isSignUp && name === 'password' && value) {
+      const validation = validatePasswordStrength(value);
+      setPasswordStrength(validation);
+    } else if (isSignUp && name === 'password' && !value) {
+      setPasswordStrength(null);
+    }
+    
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -75,6 +86,44 @@ const Login = () => {
         [name]: ''
       }));
     }
+    
+    // Clear confirm password error if passwords match
+    if (name === 'confirmPassword' && value === formData.password && errors.confirmPassword) {
+      setErrors(prev => ({
+        ...prev,
+        confirmPassword: ''
+      }));
+    }
+  };
+
+  // Password strength validation (production-ready)
+  const validatePasswordStrength = (password) => {
+    if (!password) return { valid: false, message: 'Password is required' };
+    
+    const requirements = {
+      minLength: password.length >= 8,
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    };
+    
+    const failedRequirements = [];
+    if (!requirements.minLength) failedRequirements.push('at least 8 characters');
+    if (!requirements.hasUpperCase) failedRequirements.push('one uppercase letter');
+    if (!requirements.hasLowerCase) failedRequirements.push('one lowercase letter');
+    if (!requirements.hasNumber) failedRequirements.push('one number');
+    // Special character is optional but recommended
+    
+    if (failedRequirements.length > 0) {
+      return {
+        valid: false,
+        message: `Password must contain ${failedRequirements.join(', ')}`,
+        requirements
+      };
+    }
+    
+    return { valid: true, requirements };
   };
 
   const validateForm = () => {
@@ -83,8 +132,10 @@ const Login = () => {
     if (isSignUp) {
       if (!formData.name) {
         newErrors.name = 'Name is required';
-      } else if (formData.name.length < 2) {
+      } else if (formData.name.trim().length < 2) {
         newErrors.name = 'Name must be at least 2 characters';
+      } else if (formData.name.trim().length > 50) {
+        newErrors.name = 'Name must be less than 50 characters';
       }
     }
 
@@ -92,12 +143,26 @@ const Login = () => {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
+    } else if (formData.email.length > 255) {
+      newErrors.email = 'Email is too long';
     }
 
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    if (isSignUp) {
+      const passwordValidation = validatePasswordStrength(formData.password);
+      if (!passwordValidation.valid) {
+        newErrors.password = passwordValidation.message;
+      }
+      
+      // Validate confirm password
+      if (!formData.confirmPassword) {
+        newErrors.confirmPassword = 'Please confirm your password';
+      } else if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = 'Passwords do not match';
+      }
+    } else {
+      if (!formData.password) {
+        newErrors.password = 'Password is required';
+      }
     }
 
     setErrors(newErrors);
@@ -178,7 +243,9 @@ const Login = () => {
       }
     } catch (err) {
       console.error('Auth error:', err);
-      toast.error(isSignUp ? 'Registration failed. Please try again.' : 'Login failed. Please try again.', { id: 'login-submit' });
+      // Show the actual error message from the backend
+      const errorMessage = err?.message || err || (isSignUp ? 'Registration failed. Please try again.' : 'Login failed. Please try again.');
+      toast.error(errorMessage, { id: 'login-submit', duration: 4000 });
     }
   };
 
@@ -426,10 +493,82 @@ const Login = () => {
                   )}
                 </button>
               </div>
+              
+              {/* Password Strength Indicator - Only for Sign Up */}
+              {isSignUp && passwordStrength && formData.password && (
+                <div className="mt-2 space-y-2">
+                  {/* Password Requirements Checklist */}
+                  <div className="text-xs space-y-1">
+                    <div className={`flex items-center ${passwordStrength.requirements?.minLength ? 'text-green-600' : 'text-gray-500'}`}>
+                      <span className="mr-1.5">{passwordStrength.requirements?.minLength ? '✓' : '○'}</span>
+                      <span>At least 8 characters</span>
+                    </div>
+                    <div className={`flex items-center ${passwordStrength.requirements?.hasUpperCase ? 'text-green-600' : 'text-gray-500'}`}>
+                      <span className="mr-1.5">{passwordStrength.requirements?.hasUpperCase ? '✓' : '○'}</span>
+                      <span>One uppercase letter</span>
+                    </div>
+                    <div className={`flex items-center ${passwordStrength.requirements?.hasLowerCase ? 'text-green-600' : 'text-gray-500'}`}>
+                      <span className="mr-1.5">{passwordStrength.requirements?.hasLowerCase ? '✓' : '○'}</span>
+                      <span>One lowercase letter</span>
+                    </div>
+                    <div className={`flex items-center ${passwordStrength.requirements?.hasNumber ? 'text-green-600' : 'text-gray-500'}`}>
+                      <span className="mr-1.5">{passwordStrength.requirements?.hasNumber ? '✓' : '○'}</span>
+                      <span>One number</span>
+                    </div>
+                  </div>
+                  
+                  {/* Password Strength Bar */}
+                  {passwordStrength.valid && (
+                    <div className="h-1 bg-green-500 rounded-full transition-all duration-300"></div>
+                  )}
+                </div>
+              )}
+              
               {errors.password && (
                     <p className="mt-1 text-xs text-red-600">{errors.password}</p>
               )}
             </div>
+
+            {/* Confirm Password Field - Only for Sign Up */}
+            {isSignUp && (
+              <div>
+                <label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-medium text-[#1F1F1F] mb-2">
+                  Confirm password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiLock className="h-4 w-4 sm:h-5 sm:w-5 text-[#666666]" />
+                  </div>
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 pl-9 sm:pl-10 pr-9 sm:pr-10 border border-[#00A676]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00A676]/50 focus:border-[#00A676] bg-[#FAFAFA] text-sm sm:text-base text-[#1F1F1F] placeholder:text-[#666666] ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : formData.confirmPassword && formData.password === formData.confirmPassword ? 'border-green-500' : ''}`}
+                    placeholder="Confirm your password"
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <FiEyeOff className="h-4 w-4 sm:h-5 sm:w-5 text-[#666666] hover:text-[#00A676]" />
+                    ) : (
+                      <FiEye className="h-4 w-4 sm:h-5 sm:w-5 text-[#666666] hover:text-[#00A676]" />
+                    )}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className="mt-1 text-xs text-red-600">{errors.confirmPassword}</p>
+                )}
+                {formData.confirmPassword && formData.password === formData.confirmPassword && !errors.confirmPassword && (
+                  <p className="mt-1 text-xs text-green-600">✓ Passwords match</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Error Message */}
@@ -466,8 +605,10 @@ const Login = () => {
                   type="button"
                   onClick={() => {
                     setIsSignUp(!isSignUp);
-                    setFormData({ name: '', email: '', password: '' });
+                    setFormData({ name: '', email: '', password: '', confirmPassword: '' });
                     setErrors({});
+                    setPasswordStrength(null);
+                    setShowConfirmPassword(false);
                   }}
                   className="font-semibold text-[#00A676] hover:text-[#008A5E] transition-colors duration-200"
                 >

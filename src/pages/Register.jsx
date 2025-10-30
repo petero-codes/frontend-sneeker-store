@@ -17,9 +17,39 @@ const Register = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(null);
   const [errors, setErrors] = useState({});
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  
+  // Password strength validation (production-ready)
+  const validatePasswordStrength = (password) => {
+    if (!password) return { valid: false, message: 'Password is required' };
+    
+    const requirements = {
+      minLength: password.length >= 8,
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    };
+    
+    const failedRequirements = [];
+    if (!requirements.minLength) failedRequirements.push('at least 8 characters');
+    if (!requirements.hasUpperCase) failedRequirements.push('one uppercase letter');
+    if (!requirements.hasLowerCase) failedRequirements.push('one lowercase letter');
+    if (!requirements.hasNumber) failedRequirements.push('one number');
+    
+    if (failedRequirements.length > 0) {
+      return {
+        valid: false,
+        message: `Password must contain ${failedRequirements.join(', ')}`,
+        requirements
+      };
+    }
+    
+    return { valid: true, requirements };
+  };
 
   const { register, isLoading, error, clearError, isAuthenticated, user } = useAuth();
   const dispatch = useDispatch();
@@ -64,11 +94,27 @@ const Register = () => {
       [name]: value
     }));
     
+    // Real-time password strength check
+    if (name === 'password' && value) {
+      const validation = validatePasswordStrength(value);
+      setPasswordStrength(validation);
+    } else if (name === 'password' && !value) {
+      setPasswordStrength(null);
+    }
+    
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
         [name]: ''
+      }));
+    }
+    
+    // Clear confirm password error if passwords match
+    if (name === 'confirmPassword' && value === formData.password && errors.confirmPassword) {
+      setErrors(prev => ({
+        ...prev,
+        confirmPassword: ''
       }));
     }
   };
@@ -88,10 +134,14 @@ const Register = () => {
       newErrors.email = 'Email is invalid';
     }
 
+    // Production-ready password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    } else {
+      const passwordValidation = validatePasswordStrength(formData.password);
+      if (!passwordValidation.valid) {
+        newErrors.password = passwordValidation.message;
+      }
     }
 
     if (!formData.confirmPassword) {
@@ -126,7 +176,9 @@ const Register = () => {
       navigate('/', { replace: true });
     } catch (err) {
       console.error('Registration error:', err);
-      toast.error('Registration failed. Please try again.', { id: 'register-submit' });
+      // Show the actual error message from the backend
+      const errorMessage = err?.message || err || 'Registration failed. Please try again.';
+      toast.error(errorMessage, { id: 'register-submit', duration: 4000 });
     }
   };
 
@@ -339,6 +391,37 @@ const Register = () => {
                   )}
                 </button>
               </div>
+              
+              {/* Password Strength Indicator */}
+              {passwordStrength && formData.password && (
+                <div className="mt-2 space-y-2">
+                  {/* Password Requirements Checklist */}
+                  <div className="text-xs space-y-1">
+                    <div className={`flex items-center ${passwordStrength.requirements?.minLength ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                      <span className="mr-1.5">{passwordStrength.requirements?.minLength ? '✓' : '○'}</span>
+                      <span>At least 8 characters</span>
+                    </div>
+                    <div className={`flex items-center ${passwordStrength.requirements?.hasUpperCase ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                      <span className="mr-1.5">{passwordStrength.requirements?.hasUpperCase ? '✓' : '○'}</span>
+                      <span>One uppercase letter</span>
+                    </div>
+                    <div className={`flex items-center ${passwordStrength.requirements?.hasLowerCase ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                      <span className="mr-1.5">{passwordStrength.requirements?.hasLowerCase ? '✓' : '○'}</span>
+                      <span>One lowercase letter</span>
+                    </div>
+                    <div className={`flex items-center ${passwordStrength.requirements?.hasNumber ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                      <span className="mr-1.5">{passwordStrength.requirements?.hasNumber ? '✓' : '○'}</span>
+                      <span>One number</span>
+                    </div>
+                  </div>
+                  
+                  {/* Password Strength Bar */}
+                  {passwordStrength.valid && (
+                    <div className="h-1 bg-green-500 rounded-full transition-all duration-300"></div>
+                  )}
+                </div>
+              )}
+              
               {errors.password && (
                 <p className="mt-0.5 text-[10px] text-red-600 dark:text-red-400">{errors.password}</p>
               )}
@@ -375,8 +458,11 @@ const Register = () => {
                   )}
                 </button>
               </div>
-              {errors.confirmPassword && (
+                {errors.confirmPassword && (
                 <p className="mt-0.5 text-[10px] text-red-600 dark:text-red-400">{errors.confirmPassword}</p>
+              )}
+              {formData.confirmPassword && formData.password === formData.confirmPassword && !errors.confirmPassword && (
+                <p className="mt-0.5 text-[10px] text-green-600 dark:text-green-400">✓ Passwords match</p>
               )}
             </div>
           </div>

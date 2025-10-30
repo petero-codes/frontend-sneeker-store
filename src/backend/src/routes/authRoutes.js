@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, login, getMe, unifiedAuth } from '../controllers/authController.js';
+import { register, login, getMe, unifiedAuth, updateProfile } from '../controllers/authController.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -23,6 +23,11 @@ router.post('/login', login);
 // @desc    Get current user
 // @access  Private
 router.get('/me', authMiddleware, getMe);
+
+// @route   PUT /api/auth/me
+// @desc    Update current user profile
+// @access  Private
+router.put('/me', authMiddleware, updateProfile);
 
 export default router;
 

@@ -24,22 +24,30 @@ export const loginUser = createAsyncThunk(
         return rejectWithValue(data.message || 'Login failed');
       }
 
-      if (data.success) {
-        // Store token in localStorage
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('adminToken', data.token); // For admin compatibility
-        
-        return {
-          id: data.user.id,
-          _id: data.user.id,
-          name: data.user.name,
-          email: data.user.email,
-          role: data.user.role || 'user',
-          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'
-        };
-      } else {
-        return rejectWithValue(data.message || 'Login failed');
-      }
+             if (data.success) {
+               // Store token in localStorage
+               localStorage.setItem('token', data.token);
+               localStorage.setItem('adminToken', data.token); // For admin compatibility
+               
+               // Store profile photo in localStorage if it exists
+               if (data.user.profilePhoto) {
+                 localStorage.setItem('userAvatar', data.user.profilePhoto);
+               }
+               
+               return {
+                 id: data.user.id,
+                 _id: data.user.id,
+                 name: data.user.name,
+                 email: data.user.email,
+                 role: data.user.role || 'user',
+                 avatar: data.user.profilePhoto || localStorage.getItem('userAvatar') || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face',
+                 phoneNumber: data.user.phoneNumber || '',
+                 address: data.user.address || '',
+                 createdAt: data.user.createdAt
+               };
+             } else {
+               return rejectWithValue(data.message || 'Login failed');
+             }
     } catch (error) {
       console.error('Login error:', error);
       return rejectWithValue(error.message || 'Network error. Please try again.');
@@ -75,18 +83,21 @@ export const validateToken = createAsyncThunk(
         return rejectWithValue(data.message || 'Invalid token');
       }
 
-      if (data.success) {
-        return {
-          id: data.user.id || data.user._id,
-          _id: data.user.id || data.user._id,
-          name: data.user.name,
-          email: data.user.email,
-          role: data.user.role || 'user',
-          avatar: data.user.profilePhoto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'
-        };
-      } else {
-        return rejectWithValue(data.message || 'Token validation failed');
-      }
+             if (data.success) {
+               return {
+                 id: data.user.id || data.user._id,
+                 _id: data.user.id || data.user._id,
+                 name: data.user.name,
+                 email: data.user.email,
+                 role: data.user.role || 'user',
+                 avatar: data.user.profilePhoto || localStorage.getItem('userAvatar') || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face',
+                 phoneNumber: data.user.phoneNumber || '',
+                 address: data.user.address || '',
+                 createdAt: data.user.createdAt
+               };
+             } else {
+               return rejectWithValue(data.message || 'Token validation failed');
+             }
     } catch (error) {
       console.error('Token validation error:', error);
       localStorage.removeItem('token');
@@ -113,30 +124,53 @@ export const registerUser = createAsyncThunk(
         }),
       });
 
+      // Handle network errors before parsing JSON
+      if (!response.ok) {
+        let errorMessage = 'Registration failed';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          // If response is not JSON, use status text
+          errorMessage = response.statusText || `Server error (${response.status})`;
+        }
+        return rejectWithValue(errorMessage);
+      }
+
       const data = await response.json();
 
-      if (!response.ok) {
-        return rejectWithValue(data.message || 'Registration failed');
-      }
-
-      if (data.success) {
-        // Store token in localStorage
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('adminToken', data.token);
-        
-        return {
-          id: data.user.id,
-          _id: data.user.id,
-          name: data.user.name,
-          email: data.user.email,
-          role: data.user.role || 'user',
-          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'
-        };
-      } else {
-        return rejectWithValue(data.message || 'Registration failed');
-      }
+             if (data.success) {
+               // Store token in localStorage
+               localStorage.setItem('token', data.token);
+               localStorage.setItem('adminToken', data.token);
+               
+               // Store profile photo in localStorage if it exists
+               if (data.user.profilePhoto) {
+                 localStorage.setItem('userAvatar', data.user.profilePhoto);
+               }
+               
+               return {
+                 id: data.user.id,
+                 _id: data.user.id,
+                 name: data.user.name,
+                 email: data.user.email,
+                 role: data.user.role || 'user',
+                 avatar: data.user.profilePhoto || localStorage.getItem('userAvatar') || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face',
+                 phoneNumber: data.user.phoneNumber || '',
+                 address: data.user.address || '',
+                 createdAt: data.user.createdAt
+               };
+             } else {
+               return rejectWithValue(data.message || 'Registration failed');
+             }
     } catch (error) {
       console.error('Registration error:', error);
+      
+      // Better error messages for different scenarios
+      if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+        return rejectWithValue('Unable to connect to server. Please check your internet connection and ensure the backend is running.');
+      }
+      
       return rejectWithValue(error.message || 'Network error. Please try again.');
     }
   }
@@ -189,6 +223,10 @@ const userSlice = createSlice({
         state.user = action.payload;
         state.isAuthenticated = true;
         state.error = null;
+        // Save profile photo to localStorage when user data is loaded
+        if (action.payload?.avatar || action.payload?.profilePhoto) {
+          localStorage.setItem('userAvatar', action.payload.avatar || action.payload.profilePhoto);
+        }
       })
       .addCase(validateToken.rejected, (state, action) => {
         state.isLoading = false;
@@ -209,6 +247,10 @@ const userSlice = createSlice({
         state.user = action.payload;
         state.isAuthenticated = true;
         state.error = null;
+        // Save profile photo to localStorage when user logs in
+        if (action.payload?.avatar || action.payload?.profilePhoto) {
+          localStorage.setItem('userAvatar', action.payload.avatar || action.payload.profilePhoto);
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -224,6 +266,10 @@ const userSlice = createSlice({
         state.user = action.payload;
         state.isAuthenticated = true;
         state.error = null;
+        // Save profile photo to localStorage when user registers
+        if (action.payload?.avatar || action.payload?.profilePhoto) {
+          localStorage.setItem('userAvatar', action.payload.avatar || action.payload.profilePhoto);
+        }
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;

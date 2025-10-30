@@ -529,7 +529,9 @@ const Navbar = () => {
                         />
                         <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-gradient-to-r from-seekon-electricRed to-seekon-neonCyan rounded-full border-2 border-seekon-midnight"></div>
                       </div>
-                      <span className="text-xs sm:text-sm md:text-base font-medium text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300 hidden sm:inline truncate max-w-[80px] md:max-w-[120px]">{user?.name}</span>
+                      <span className="text-xs sm:text-sm md:text-base font-medium text-seekon-softWhite group-hover:text-seekon-pureWhite transition-colors duration-300 hidden sm:inline truncate max-w-[80px] md:max-w-[120px]">
+                        {user?.name || user?.email?.split('@')[0] || 'User'}
+                      </span>
                     </button>
 
                     {/* User Dropdown */}
@@ -565,9 +567,19 @@ const Navbar = () => {
                                 </div>
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-seekon-pureWhite truncate">{user?.name}</h3>
-                                <p className="text-xs sm:text-sm text-seekon-platinumSilver truncate">{user?.email}</p>
-                                <p className="text-[10px] sm:text-xs text-seekon-neonCyan mt-1">Premium Member</p>
+                                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-seekon-pureWhite truncate">
+                                  {user?.name || user?.email?.split('@')[0] || 'User'}
+                                </h3>
+                                <p className="text-xs sm:text-sm text-seekon-platinumSilver truncate">
+                                  {user?.email || 'No email'}
+                                </p>
+                                {user?.role === 'admin' || user?.role === 'superadmin' ? (
+                                  <p className="text-[10px] sm:text-xs text-seekon-neonCyan mt-1 capitalize">
+                                    {user?.role || 'Member'}
+                                  </p>
+                                ) : (
+                                  <p className="text-[10px] sm:text-xs text-seekon-neonCyan mt-1">Premium Member</p>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -648,8 +660,12 @@ const Navbar = () => {
                           <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-gradient-to-r from-seekon-electricRed to-seekon-neonCyan rounded-full border-2 border-seekon-midnight"></div>
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-base font-semibold text-seekon-pureWhite">{user?.name}</h3>
-                          <p className="text-sm text-seekon-platinumSilver">{user?.email}</p>
+                          <h3 className="text-base font-semibold text-seekon-pureWhite">
+                            {user?.name || user?.email?.split('@')[0] || 'User'}
+                          </h3>
+                          <p className="text-sm text-seekon-platinumSilver">
+                            {user?.email || 'No email'}
+                          </p>
                         </div>
                       </div>
                     </div>
